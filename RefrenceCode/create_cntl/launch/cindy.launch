@@ -1,0 +1,65 @@
+<launch>
+
+  <node name="mocap_client" pkg="mocap_client" type="data_stream_client">
+    <param name="mocap_host_addr" value="192.168.20.99"/>
+    <param name="mocap_host_port" value="801"/>
+  </node>
+
+
+  <node name="udp_server_1" type="udp_server" pkg="udp_server">
+    <remap from="udp_sub" to="matlab_2_udp_1"/>
+    <remap from="udp_pub" to="udp_2_matlab_1"/>
+    <param name="server_port" value="4401"/>
+  </node>
+  
+  <node name="matlab_protocol_1" type="matlab_protocol" pkg="matlab_protocol">
+    <remap from="matlab_pub" to="matlab_2_udp_1"/>
+    <remap from="matlab_sub" to="udp_2_matlab_1"/>
+    <param name="x_scale" value="1000.0"/>
+    <param name="y_scale" value="1000.0"/>
+    <rosparam param="S_list">
+      [ "create9", "create3", "create5", "create6" ] 
+    </rosparam>
+  </node>
+
+  <node name="create9_device" pkg="serial_comm" type="serial_sender">
+    <remap from="serial_command" to="create9/serial_command"/> 
+    <param name="serial_device" value="/dev/ttyCREATE9"/>
+    <param name="serial_baudrate" value="57600"/>
+    <param name="serial_usleep" value="0.0"/>
+  </node>
+
+  <node name="create3_device" pkg="serial_comm" type="serial_sender">
+    <remap from="serial_command" to="create3/serial_command"/> 
+    <param name="serial_device" value="/dev/ttyCREATE3"/>
+    <param name="serial_baudrate" value="57600"/>
+    <param name="serial_usleep" value="0.0"/>
+  </node>
+
+  <node name="create5_device" pkg="serial_comm" type="serial_sender">
+    <remap from="serial_command" to="create5/serial_command"/> 
+    <param name="serial_device" value="/dev/ttyCREATE5"/>
+    <param name="serial_baudrate" value="57600"/>
+    <param name="serial_usleep" value="0.0"/>
+  </node>
+
+  <node name="create6_device" pkg="serial_comm" type="serial_sender">
+    <remap from="serial_command" to="create6/serial_command"/> 
+    <param name="serial_device" value="/dev/ttyCREATE6"/>
+    <param name="serial_baudrate" value="57600"/>
+    <param name="serial_usleep" value="0.0"/>
+  </node>
+
+  <node name="create_cntl" pkg="create_cntl" type="create_cntl">
+    <rosparam param="S_list">
+      [ "create9", "create3", "create5", "create6" ]
+    </rosparam>
+  </node>
+
+  <node name="create_protocol" pkg="create_cntl" type="create_protocol">
+    <rosparam param="S_list">
+      [ "create9", "create3", "create5", "create6" ]
+    </rosparam>
+  </node>
+
+</launch>

@@ -1,0 +1,24 @@
+<launch>
+
+  <node name="xbee0" type="serial_device" pkg="serial_device">
+    <remap from="serial_sub" to="xbee0_send"/>
+    <remap from="serial_pub" to="serial_pub"/>
+    <param name="dev" value="/dev/ttyUSB0"/>
+    <param name="baud" value="57600"/>
+  </node>
+  
+  <node name="xbee1" type="serial_device" pkg="serial_device">
+    <remap from="serial_sub" to="serial_sub"/>
+    <remap from="serial_pub" to="xbee1_recv"/>
+    <param name="dev" value="/dev/ttyUSB1"/>
+    <param name="baud" value="57600"/>
+  </node>
+  
+  <node name="xbee_protocol" type="xbee_protocol" pkg="xbee_protocol">
+    <remap from="transform_pub" to="ugv"/>
+    <remap from="transform_sub" to="vicon/ugv/ugv"/>
+    <remap from="xbee_pub" to="xbee0_send"/>
+    <remap from="xbee_sub" to="xbee1_recv"/>
+  </node>
+
+</launch>
