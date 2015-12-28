@@ -5,7 +5,8 @@ from math import *
 import sys
 import time
 
-DEBUG = False#True
+DEBUG = True
+NO_SERIAL = False
 
 class Create_OpMode(IntEnum):
     Passive = 130
@@ -34,7 +35,7 @@ class CreateRobotCmd(object):
         #information on drive mode is bellow and in documentation
         self.drivemode = DriveMode
         #Serial port baud is currently hard coded
-        if DEBUG:
+        if NO_SERIAL:
             self.port = serial.Serial()
         else:
             self.port = serial.Serial(port,57600,parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE,xonxoff=False,timeout=10.0)
@@ -44,13 +45,11 @@ class CreateRobotCmd(object):
         self._writeCommand(self.opmode)
 
     def stop(self):
-        if not DEBUG:
-            #self.drive(1,0)
-            self.opmode = Create_OpMode.Passive
-            self._writeCommand(Create_OpMode.Passive)
-            #self.port.close()
-        else:
-            print 'close called'
+        self.directDrive(0,0)
+        self.opmode = Create_OpMode.Passive
+        self._writeCommand(Create_OpMode.Passive)
+        #self.port.close()
+
 
 
     def _writeCommand(self,cmd):
@@ -69,10 +68,10 @@ class CreateRobotCmd(object):
             return
 
         nb = len(cmd)
-        if not DEBUG:
+        if not NO_SERIAL:
             nb_written = self.port.write(cmd)
             if (nb != nb_written):print "Error only wrote %i not %i bytes"%(nb_written,nb)
-        elif DEBUG:
+        if DEBUG:
             int_form = []
             for i in range(0,nb):
                 int_form.append(int(ord(cmd[i])))
@@ -89,7 +88,7 @@ class CreateRobotCmd(object):
 
     def setDriveMode(self,DriveMode):
         self.drivemode = DriveMode
-        self._writeCommand(DriveMode)
+        #self._writeCommand(DriveMode)
 
     def drive(self,Radius,Velocity):
         '''This mode uses radii and velocity for turning
@@ -133,10 +132,11 @@ def main():
         #time.sleep(2)
         #CRC.drive(500,200)
         #time.sleep(2)
-        CRC.directDrive(50,50)
-        time.sleep(2)
-        CRC.directDrive(-50,-50)
-        time.sleep(2)
+        for i in range(0,3):
+            CRC.directDrive(500,500)
+            time.sleep(1)
+            CRC.directDrive(-500,-500)
+            time.sleep(1)
         
         CRC.stop()
         #CRC.start()
