@@ -5,7 +5,7 @@ from math import *
 import sys
 import time
 
-DEBUG = True
+DEBUG = False#True
 
 class Create_OpMode(IntEnum):
     Passive = 130
@@ -37,24 +37,29 @@ class CreateRobotCmd(object):
         if DEBUG:
             self.port = serial.Serial()
         else:
-            self.port = serial.Serial(port,57600,parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE)
-    def close(self):
-        if not DEBUG:
-            self.port.close()
-        else:
-            print 'close called'
+            self.port = serial.Serial(port,57600,parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE,xonxoff=False,timeout=10.0)
 
     def start(self):
         self._writeCommand(Create_Commands.Start)
         self._writeCommand(self.opmode)
 
+    def stop(self):
+        if not DEBUG:
+            #self.drive(1,0)
+            self.opmode = Create_OpMode.Passive
+            self._writeCommand(Create_OpMode.Passive)
+            #self.port.close()
+        else:
+            print 'close called'
+
+
     def _writeCommand(self,cmd):
-        '''the input type should be a string or int,
+        '''the input type should be a string, int, or Create_ value
            int is converted to a char string,
            strings are passed through'''
         if (type(cmd) == type(Create_Commands.Start) or 
             type(cmd) == type(Create_OpMode.Full) or 
-            type(cmd) == type(Create_OpMode) ):
+            type(cmd) == type(Create_DriveMode.Direct) ):
             cmd = int(cmd)
 
         if type(cmd) == int:
@@ -62,24 +67,28 @@ class CreateRobotCmd(object):
         elif type(cmd) == type(None):
             print "huh"
             return
-        #elif type(cmd) != type('str'):
-        #    cmd = '%i'%int(cmd)
+
         nb = len(cmd)
         if not DEBUG:
             nb_written = self.port.write(cmd)
             if (nb != nb_written):print "Error only wrote %i not %i bytes"%(nb_written,nb)
-        else:
-            print cmd
+        elif DEBUG:
             int_form = []
             for i in range(0,nb):
                 int_form.append(int(ord(cmd[i])))
+            print cmd
             print int_form
+
+
+    def demo(self):
+        cmd = struct.pack('B',136)+struct.pack('B',2)
+        self._writeCommand(cmd)
 
     def _makecmd(self,head,one,two):
         return struct.pack('B',head)+struct.pack('>h',one)+struct.pack('>h',two)
 
-    def setDriveMode(DriveMode):
-        self.drive = DriveMode
+    def setDriveMode(self,DriveMode):
+        self.drivemode = DriveMode
         self._writeCommand(DriveMode)
 
     def drive(self,Radius,Velocity):
@@ -118,11 +127,19 @@ def main():
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
         CRC.start()
-        #time.sleep(4)
-        CRC.drive(500,-200)
-        #time.sleep(4)
-        #CRC.drive(-20,50)
-        #time.sleep(4)
+        time.sleep(0.5)
+        #CRC.demo()
+        #CRC.drive(500,-200)
+        #time.sleep(2)
+        #CRC.drive(500,200)
+        #time.sleep(2)
+        CRC.directDrive(50,50)
+        time.sleep(2)
+        CRC.directDrive(-50,-50)
+        time.sleep(2)
+        
+        CRC.stop()
+        #CRC.start()
         return 0
 
 if __name__ == "__main__":
