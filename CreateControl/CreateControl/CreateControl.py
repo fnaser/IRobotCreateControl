@@ -25,6 +25,7 @@ def minMax(min_val,max_val,val):
 
 class CreateRobotCmd(object):
     def __init__(self,port,OpMode,DriveMode):
+        '''Opens Serial Port'''
         # These are hard limits in the create which are hard coded in
         self.rmin = -2000.0
         self.rmax = 2000.0
@@ -45,6 +46,7 @@ class CreateRobotCmd(object):
         self._writeCommand(self.opmode)
 
     def stop(self):
+        '''Stops movement and sets the device to passive'''
         self.directDrive(0,0)
         self.opmode = Create_OpMode.Passive
         self._writeCommand(Create_OpMode.Passive)
@@ -86,16 +88,13 @@ class CreateRobotCmd(object):
     def _makecmd(self,head,one,two):
         return struct.pack('B',head)+struct.pack('>h',one)+struct.pack('>h',two)
 
-    def setDriveMode(self,DriveMode):
-        self.drivemode = DriveMode
-        #self._writeCommand(DriveMode)
 
     def drive(self,Radius,Velocity):
         '''This mode uses radii and velocity for turning
             straight requires R=None
             Clockwise and Counterclockwise in place are R=0
         '''
-        if (self.drivemode != Create_DriveMode.Drive): self.setDriveMode(Create_DriveMode.Drive)
+        if (self.drivemode != Create_DriveMode.Drive): self.self.drivemode =Create_DriveMode.Drive
 
         Velocity =  minMax(self.vmin,self.vmax,Velocity)
 
@@ -112,7 +111,7 @@ class CreateRobotCmd(object):
 
     def directDrive(self,V1,V2):
         '''The direct drive mode allows control over right and left wheels directly. This uses v1 for R and V2 for L'''
-        if (self.drivemode != Create_DriveMode.Direct): self.setDriveMode(Create_DriveMode.Direct)
+        if (self.drivemode != Create_DriveMode.Direct): self.drivemode = Create_DriveMode.Direct
 
         V1 = minMax(self.vmin,self.vmax,V1)
         V2 = minMax(self.vmin,self.vmax,V2)
@@ -126,17 +125,15 @@ def main():
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
         CRC.start()
-        time.sleep(0.5)
-        #CRC.demo()
-        #CRC.drive(500,-200)
-        #time.sleep(2)
-        #CRC.drive(500,200)
-        #time.sleep(2)
         for i in range(0,3):
-            CRC.directDrive(500,500)
-            time.sleep(1)
-            CRC.directDrive(-500,-500)
-            time.sleep(1)
+        #    CRC.directDrive(50,50)
+        #    time.sleep(10)
+        #    CRC.directDrive(-50,-50)
+        #    time.sleep(10)
+            #time.sleep(2)
+            CRC.drive(5*pow(10,(i+1)),100)
+            time.sleep(10)
+            #CRC.drive(5,100)
         
         CRC.stop()
         #CRC.start()
