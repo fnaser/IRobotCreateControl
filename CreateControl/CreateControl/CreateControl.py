@@ -126,12 +126,12 @@ def main():
     if CRC.port.isOpen() or DEBUG:
         CRC.start()
         for i in range(0,3):
-        #    CRC.directDrive(50,50)
-        #    time.sleep(10)
-        #    CRC.directDrive(-50,-50)
+            CRC.directDrive(50,50)
+            time.sleep(10)
+            CRC.directDrive(-50,-50)
         #    time.sleep(10)
             #time.sleep(2)
-            CRC.drive(5*pow(10,(i+1)),100)
+            #CRC.drive(5*pow(10,(i+1)),100)
             time.sleep(10)
             #CRC.drive(5,100)
         
