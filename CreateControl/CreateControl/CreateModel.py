@@ -1,28 +1,17 @@
 from math import *
 
-''' Since we are using a vicon system we can assume that we are using a model
-X_k+1 = f(X_k,U_k)+Q
-Y_k+1 = I*X_k +0   so C=I and R=0
-
-X_k is [x,y,Theta]
-U_k is [Us,Uo]
-
-f(x,u) = [Us*cos(Theta)*dt,
-          Us*sin(Theta)*dt,
-          Us/L*tan(Uo)*dt]
-'''
+def UkFromXkanXkplusone(Xk,Xkp1,ro,dt):
+    V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
+    thetadot = (Xkp1[2]-Xk[2])/dt
+    Uk = [V-ro*thetadot, V+ro*thetadot]
+    return Uk 
 
 
-class CreateModel:
-    def __init__(self,r,Phi_max,dt=1):
-        ''' Creates A Model for a given radius'''
-        self.R = r
-        self.Phi_max = Phi_max
-        self.L = r*tan(Phi_max)
-        self.dt = dt
-    def f(self,X_k,U_k):
-        ''' Returns X_k+1 for a given U_k'''
-        [x,y,Theta] = X_k
-        [Us,Uo] = U_k
-        return [Us*cos(Theta)*self.dt,Us*sin(Theta)*self.dt,Us/self.L*tan(Uo)*self.dt]
+def TrajToUko(Xks,ro,dt):
+    Ukos = []
+    for i in range(0,len(Xks)-1):
+        Xk = Xks[i]
+        Xkp1 = Xks[i+1]
+        Ukos.append(UkFromXkanXkplusone(Xk,Xkp1,ro,dt))
+    return Ukos
 
