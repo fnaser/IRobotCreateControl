@@ -49,6 +49,9 @@ def TrajToUko(Xks,ro,dt):
 
 
 def TVLQR(xtraj, utraj, dt, r0, Q, R):
+    '''Q should be 1/distance deviation ^2
+       R should be 1/ speed deviation^2
+    '''
     Ktraj = []
     S = np.matrix(Q)
     Q = np.matrix(Q)
@@ -58,10 +61,14 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
-    return Ktraj
+    Ktraj_output=[]
+    for K in reversed(Ktraj):
+        Ktraj_output.append(K)
+    return Ktraj_output
 
 
 def B(x,r0):
+    '''returns the B matrix'''
     th = x[2]
     B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1/(2*r0), 1/(2*r0)]])
     return B
