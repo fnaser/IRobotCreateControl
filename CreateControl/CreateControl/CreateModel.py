@@ -47,3 +47,23 @@ def TrajToUko(Xks,ro,dt):
         Ukos.append(np.array(UkFromXkanXkplusone(Xk,Xkp1,ro,dt)))
     return Ukos
 
+
+def TVLQR(xtraj, utraj, dt, r0, Q, R):
+    Ktraj = []
+    S = np.matrix(Q)
+    Q = np.matrix(Q)
+    R = np.matrix(R)
+    for k in range(len(xtraj)-1,-1,-1):
+        Bk = B(xtraj(k),r0)
+        K = -(R + Bk.T*S*Bk).I*Bk.T*S
+        S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
+        Ktraj.append(K)
+    return Ktraj
+
+
+def B(x,r0):
+    th = x[2]
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1/(2*r0), 1/(2*r0)]])
+    return B
+
+
