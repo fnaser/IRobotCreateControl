@@ -22,9 +22,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CreateController.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="CreateInterface.py" />
     <Compile Include="CreateModel.py" />
     <Compile Include="CreateStateEstimator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TrajectoryTests.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="vicon\body_deprecated_t.py" />
