@@ -6,14 +6,15 @@ import lcm
 import sys
 
 class StateHolder():
-    def __init__(self,start,lock):
+    def __init__(self,lock,start):
         self.state = start
-        self.lock = lock
-    def setState(state):
+	self.lock = lock
+    def setState(self,state):
         self.lock.acquire()
         self.state = state
         self.lock.release()
-    def getState(state):
+	#print "set: ",state
+    def getState(self):
         return self.state
 
 def vicon_handler(holder,channel,data):
@@ -22,6 +23,7 @@ def vicon_handler(holder,channel,data):
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
     state = [position[0],position[1],a]
+    #print 'handeled:', state
     holder.setState(state)
 
 class ViconInterface(Thread):
@@ -30,41 +32,43 @@ class ViconInterface(Thread):
         Thread.__init__(self)
         self.lc = lcm.LCM()
         handler = lambda x,y: vicon_handler(state_holder,x,y)
-        self.subscription = lc.subscribe(channel,handler)
+        self.subscription = self.lc.subscribe(channel,handler)
 
     def run(self):
         while True:
-            lc.handle()
+            self.lc.handle()
 
 
 class ViconTester(Thread):
     def __init__(self,state_holder,rate):
+	Thread.__init__(self)
         self.holder = state_holder
         self.rate=rate
+	print "interval: ",1.0/self.rate
     def run(self):
         while True:
-            time.sleep(round(1.0/self.rate)*1000)
-            print "rate:%0.2f"%rate, self.holder.getState()
+            time.sleep(1.0/self.rate)
+            print "rate:%0.2f"%self.rate, self.holder.getState()
 
 
 def main():
     #http://www.tutorialspoint.com/python/python_multithreading.htm
     #http://www.toptal.com/python/beginners-guide-to-concurrency-and-parallelism-in-python
     #http://lcm.googlecode.com/svn/www/reference/lcm/tut_python.html
-    channel = 'Vicon_Create8'
-    locker = Lock()
+    channel = 'VICON_create8'
+    lock = Lock()
 
-    sh = StateHolder([0,0,0],locker)
+    sh = StateHolder(lock,[0,0,0])
 
     VI = ViconInterface(channel,sh)
-    VT1 = ViconTester(sh,10)
+    #VT1 = ViconTester(sh,10)
     VT2 = ViconTester(sh,1)
     VI.start()
-    VT1.start()
+    #VT1.start()
     VT2.start()
 
     VI.join()
-    VT1.join()
+    #VT1.join()
     VT2.join()
     print "Exiting Main Thread"
 
