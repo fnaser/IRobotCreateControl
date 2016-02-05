@@ -32,7 +32,7 @@ U1 = V-R*theta_dot
 U2 = V+R*theta_dot
 '''
 
-def UkFromXkanXkplusone(Xk,Xkp1,ro,dt):
+def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     thetadot = (Xkp1[2]-Xk[2])/dt
     Uk = [V-ro*thetadot, V+ro*thetadot]
@@ -44,7 +44,7 @@ def TrajToUko(Xks,ro,dt):
     for i in range(0,len(Xks)-1):
         Xk = Xks[i]
         Xkp1 = Xks[i+1]
-        Ukos.append(np.array(UkFromXkanXkplusone(Xk,Xkp1,ro,dt)))
+        Ukos.append(np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt)))
     return Ukos
 
 

@@ -5,10 +5,12 @@ import time
 import lcm
 import sys
 
+import csv
+
 class StateHolder():
     def __init__(self,lock,start):
         self.state = start
-	self.lock = lock
+        self.lock = lock
     def setState(self,state):
         self.lock.acquire()
         self.state = state
@@ -19,10 +21,11 @@ class StateHolder():
 
 def vicon_handler(holder,channel,data):
     msg = body_t.decode(data)
+    t = msg.utime
     position = msg.trans
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
-    state = [position[0],position[1],a]
+    state = [position[0],position[1],a,t]
     #print 'handeled:', state
     holder.setState(state)
 
@@ -41,14 +44,29 @@ class ViconInterface(Thread):
 
 class ViconTester(Thread):
     def __init__(self,state_holder,rate):
-	Thread.__init__(self)
+        Thread.__init__(self)
         self.holder = state_holder
         self.rate=rate
-	print "interval: ",1.0/self.rate
+	    #print "interval: ",1.0/self.rate
     def run(self):
         while True:
             time.sleep(1.0/self.rate)
             print "rate:%0.2f"%self.rate, self.holder.getState()
+
+class ViconLogger(Thread):
+    def __init__(self,name,state_holder,rate):
+        Thread.__init__(self)
+        self.holder = state_holder
+        self.rate=rate
+        self.csvFile = open(name,'wb')
+        self.writer = csv.writer(self.csvFile)
+
+	    #print "interval: ",1.0/self.rate
+    def run(self):
+        while True:
+            time.sleep(1.0/self.rate)
+            v = self.holder.getState()
+            self.writer.writerow(v)
 
 
 def main():
