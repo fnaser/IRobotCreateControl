@@ -1,4 +1,4 @@
-from vicon import body_t
+﻿from vicon import body_t
 from math import *
 from threading import Thread, Lock
 import time
@@ -50,6 +50,7 @@ class ViconTester(Thread):
 def main():
     #http://www.tutorialspoint.com/python/python_multithreading.htm
     #http://www.toptal.com/python/beginners-guide-to-concurrency-and-parallelism-in-python
+    #http://lcm.googlecode.com/svn/www/reference/lcm/tut_python.html
     channel = 'Vicon_Create8'
     locker = Lock()
 
