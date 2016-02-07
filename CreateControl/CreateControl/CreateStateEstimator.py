@@ -25,7 +25,7 @@ def vicon_handler(holder,channel,data):
     position = msg.trans
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
-    state = [position[0],position[1],a,t]
+    state = [position[0]*1000.0,position[1]*1000.0,a,t] #[mm,mm,rad,ms since epoch]
     #print 'handeled:', state
     holder.setState(state)
 

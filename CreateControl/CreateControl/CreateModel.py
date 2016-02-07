@@ -1,4 +1,4 @@
-from math import *
+﻿from math import *
 import numpy as np
 
 '''
@@ -57,7 +57,7 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
-        Bk = B(xtraj(k),r0)
+        Bk = B(xtraj[k],r0)
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
