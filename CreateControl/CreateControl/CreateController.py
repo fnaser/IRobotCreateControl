@@ -1,7 +1,9 @@
-from threading import Thread, Lock
+﻿from threading import Thread, Lock
 from CreateStateEstimator import *
 from CreateInterface import *
 from CreateModel import *
+from TrajectoryTests import *
+import sys
 
 
 class CreateController(Thread):
@@ -17,7 +19,7 @@ class CreateController(Thread):
         self.index = 0
 
     def run(self):
-        while True:
+        while True and index<len(XKs):
             time.sleep(self.dt)
             
             # get the current State
@@ -40,3 +42,45 @@ class CreateController(Thread):
                 # run it
                 self.CRC.directDrive(U[0],U[1])
             index +=1
+
+def main():
+    
+    channel = 'VICON_create8'
+    r_wheel = 125#mm
+    dt = 1.0
+    r_circle = 610#mm
+    speed = 64
+
+
+    '''Q should be 1/distance deviation ^2
+    R should be 1/ speed deviation^2
+    '''
+    Q = np.eye(3)
+    Q = Q*(1.0/10.0)
+    R = np.eye(3)
+    R = R*(1.0/50.0)
+
+
+    Xks = circle(r_circle,dt,speed)
+    lock = Lock()
+    sh = StateHolder(lock,[0,0,0])
+
+    VI = ViconInterface(channel,sh)
+    #VT1 = ViconTester(sh,10)
+    #VT2 = ViconTester(sh,1)
+    VTL = ViconLogger("test1.csv",sh,10)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Drive)
+    CC = CreateController(CRC,sh,XKs,r_wheel,dt,Q,R)
+
+
+    CC.start()
+    VI.start()
+    VTL.start()
+
+    CC.join()
+    VI.join()
+    VTL.join()
+    print "Done"
+
+if __name__ == "__main__":
+    sys.exit(int(main() or 0))
