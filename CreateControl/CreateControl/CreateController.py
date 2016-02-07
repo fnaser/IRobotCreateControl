@@ -5,6 +5,8 @@ from CreateModel import *
 from TrajectoryTests import *
 import sys
 
+import csv
+
 
 class CreateController(Thread):
     def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R):
@@ -18,44 +20,52 @@ class CreateController(Thread):
         self.Uos = TrajToUko(Xks,ro,dt)
         self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
         self.index = 0
+        self.csvFile = open("Run.csv",'wb')
+        self.writer = csv.writer(self.csvFile)
+        #row = [s[3],self.Xks[index],X,U]
+        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
+        self.writer.writerow(row)
+        
 
     def run(self):
-        while True and self.index<len(self.Xks):
+        while True and self.index<len(self.Uos):
             time.sleep(self.dt)
             
+            #print len(self.Uos),len(self.Xks)
+
             # get the current State
             s = self.holder.getState()
-            print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
+            #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
             X = np.matrix([s[0],s[1],s[2]])
             index = self.index
-            
             if(self.index ==0):
                 # for first time step set offset and start movement
                 self.offset = X-self.Xks[index]
-                print "Offset: ",self.offset
-                print 'Xo:',X-self.offset
-                print 'DXo:',X-self.offset-self.Xks[index]
-                print "Uos: ",self.Uos[index]
-                self.CRC.directDrive(self.Uos[index][0],self.Uos[index][1])
-            else:
-                #compenstate for offset between Vicon and planned coordinates
-                X = X-self.offset
-                #calculate the diffrence from desired state
-                DX = X- self.Xks[index]
-                print "X:",X,'\t',X.shape
-                print "DX:",DX,'\t',DX.shape
-                print 'K:',self.Ks[index-1],'\t',self.Ks[index-1].shape
-                print '\n\n'
-                # Generate the correction Term
-                Uc = self.Ks[index-1].dot(DX.transpose())
+
+
+            X = X-self.offset
+            DX = X- self.Xks[index]
+            U = np.matrix(self.Uos[index]).transpose()
+            Uc = np.matrix([0,0]).transpose()
+            # Generate the correction Term
+            if(self.index !=0):
                 # Make the new speed command
+                Uc = self.Ks[index-1].dot(DX.transpose())
                 U = np.matrix(self.Uos[index]).transpose() #+ Uc
-                # run it
-                print 'Uc:',Uc,'\t',Uc.shape
-                print 'Uo:',self.Uos[index],'\t',Uc.shape
-                print 'U',U
-                self.CRC.directDrive(U[0],U[1])
+            # run it
+            self.CRC.directDrive(U[1],U[0])
+            
+            
+            # Log
+            row = [s[3]]+self.Xks[index].tolist()+X.tolist()[0]+[U.tolist()[0][0],U.tolist()[1][0]]+[Uc.tolist()[0][0],Uc.tolist()[1][0]]
+            print "I:",index
+
+            self.writer.writerow(row)
+
             self.index +=1
+        self.CRC.stop()
+        self.csvFile.close()
+        print "closed"
 
 def main():
     
@@ -82,18 +92,18 @@ def main():
     VI = ViconInterface(channel,sh)
     #VT1 = ViconTester(sh,10)
     #VT2 = ViconTester(sh,1)
-    VTL = ViconLogger("test1.csv",sh,10)
+    #VTL = ViconLogger("test1.csv",sh,10)
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
     CC.start()
     VI.start()
-    VTL.start()
+    #VTL.start()
 
     CC.join()
     VI.join()
-    VTL.join()
+    #VTL.join()
     print "Done"
 
 if __name__ == "__main__":

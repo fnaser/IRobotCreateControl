@@ -5,7 +5,7 @@ from math import *
 import sys
 import time
 
-DEBUG = True
+DEBUG = False#True
 NO_SERIAL = False
 
 class Create_OpMode(IntEnum):

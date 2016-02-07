@@ -5,7 +5,7 @@ import time
 import lcm
 import sys
 
-import csv
+
 
 class StateHolder():
     def __init__(self,lock,start):
