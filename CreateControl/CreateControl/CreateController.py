@@ -34,9 +34,10 @@ class CreateController(Thread):
             #print len(self.Uos),len(self.Xks)
 
             # get the current State
-            s = self.holder.getState()
+            X = self.holder.getState()
+            t = self.holder.getTime()
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
-            X = np.matrix([s[0],s[1],s[2]])
+            #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
@@ -57,7 +58,7 @@ class CreateController(Thread):
             
             
             # Log
-            row = [s[3]]+self.Xks[index].tolist()+X.tolist()[0]+[U.tolist()[0][0],U.tolist()[1][0]]+[Uc.tolist()[0][0],Uc.tolist()[1][0]]
+            row = [t]+self.Xks[index].tolist()+X.tolist()[0]+[U.tolist()[0][0],U.tolist()[1][0]]+[Uc.tolist()[0][0],Uc.tolist()[1][0]]
             print "I:",index
 
             self.writer.writerow(row)
