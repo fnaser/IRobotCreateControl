@@ -70,9 +70,11 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
 
 
 def B(x,r0):
-    '''returns the B matrix'''
+    '''returns the B matrix
+       this expects a 1d array for X
+    '''
     th = x[2]
-    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1/(2*r0), 1/(2*r0)]])
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1/(2*r0), -1/(2*r0)]])
     return B
 
 

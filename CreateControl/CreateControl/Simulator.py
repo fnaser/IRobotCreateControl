@@ -20,11 +20,15 @@ class CreateSimulator(Thread):
     
     def run(self):
         while True:
-            time.sleep(self.dt)
+
+            time.sleep(self.dt/100)
             U = self.CRC.LastU()
             X_k_mn1 = self.holder.getState()
             W = np.matrix([np.random.normal(0,self.Q[i,i],1) for i in range(0,3)] )
             X_k = X_k_mn1 + B(X_k_mn1,self.ro).dot(U)+W
+
+            print "Sim:",self.index
+            
             t = self.t0+1000*self.index
             self.holder.setState(X_k,t)
             self.index+=1
@@ -40,11 +44,12 @@ class CRC_Sim:
         pass
 
     def directDrive(self,V1,V2):
-        print [V1,V2]
         self.Us.append(np.matrix([V1,V2]).transpose())
     
     def LastU(self):
-        return self.Us[-1]
+        if len(self.Us):
+            return self.Us[-1]
+        return np.matrix([0,0]).transpose()
 
 def main():
     channel = 'VICON_create8'
@@ -64,13 +69,14 @@ def main():
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
-    sh = StateHolder(lock,[0,0,0])
+    sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     CRC =CRC_Sim()
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
     VSim = CreateSimulator(CRC,sh,r_wheel,dt,Q)
 
     VSim.start()
+    time.sleep(0.01)
     CC.start()
 
     CC.join()

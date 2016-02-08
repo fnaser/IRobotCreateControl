@@ -16,7 +16,7 @@ class CreateController(Thread):
         self.dt = dt
         self.CRC.start()
         self.Xks = Xks
-        self.offset = np.matrix([0,0,0])
+        self.offset = np.matrix([0,0,0]).transpose()
         self.Uos = TrajToUko(Xks,ro,dt)
         self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
         self.index = 0
@@ -29,36 +29,37 @@ class CreateController(Thread):
 
     def run(self):
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt)
+            time.sleep(self.dt/100)
             
             #print len(self.Uos),len(self.Xks)
 
             # get the current State
             X = self.holder.getState()
             t = self.holder.getTime()
+            
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
             #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X-self.Xks[index]
-
+                self.offset = X-np.matrix(self.Xks[index]).transpose()
 
             X = X-self.offset
-            DX = X- self.Xks[index]
+            DX = X- np.matrix(self.Xks[index]).transpose()
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
             # Generate the correction Term
             if(self.index !=0):
                 # Make the new speed command
-                Uc = self.Ks[index-1].dot(DX.transpose())/1000.0
+                Uc = self.Ks[index-1].dot(DX)/1000.0
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
-            self.CRC.directDrive(U[1],U[0])
+            self.CRC.directDrive(U[1,0],U[0,0])
             
             
             # Log
-            row = [t]+self.Xks[index].tolist()+X.tolist()[0]+[U.tolist()[0][0],U.tolist()[1][0]]+[Uc.tolist()[0][0],Uc.tolist()[1][0]]
+            print X[1,0]
+            row = [t]+self.Xks[index].tolist()+[X[0,0], X[1,0],  X[2,0] ]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 
             self.writer.writerow(row)
