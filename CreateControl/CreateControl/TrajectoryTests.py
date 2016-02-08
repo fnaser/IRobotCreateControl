@@ -12,7 +12,7 @@ def circle(r,dt,speed):
     c = pi*r*2
     n = int(round(c/dist))
     Xks=[]
-    for i in range(0,n):
+    for i in range(0,n+1):
         x = r*sin(2*pi/n*i)
         y = r*cos(2*pi/n*i)
         theta = (2*pi/n*i+pi/2.0)%(2*pi)
