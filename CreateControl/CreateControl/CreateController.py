@@ -50,8 +50,8 @@ class CreateController(Thread):
             # Generate the correction Term
             if(self.index !=0):
                 # Make the new speed command
-                Uc = self.Ks[index-1].dot(DX.transpose())
-                U = np.matrix(self.Uos[index]).transpose() #+ Uc
+                Uc = self.Ks[index-1].dot(DX.transpose())/1000.0
+                U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
             self.CRC.directDrive(U[1],U[0])
             
@@ -80,7 +80,7 @@ def main():
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    Q = Q*(1.0/10.0)
+    Q = Q*(1.0/1.0)
     R = np.eye(2)
     R = R*(1.0/50.0)
 
