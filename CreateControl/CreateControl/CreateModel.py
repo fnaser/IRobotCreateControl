@@ -59,7 +59,7 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
-        Bk = B(xtraj[k],r0)
+        Bk = B(xtraj[k][0],r0)
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
@@ -69,12 +69,13 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     return Ktraj_output
 
 
-def B(x,r0):
+def B(th,r0):
     '''returns the B matrix
        this expects a 1d array for X
     '''
-    th = x[2]
-    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1.0/(2.0*r0), 1.0/(2.0*r0)]])
+    #th = x[2,0]
+    #print th
+    B = np.matrix([[.5*sin(th), .5*sin(th)],[.5*cos(th), .5*cos(th)],[-1.0/(2.0*r0), 1.0/(2.0*r0)]])
     return B
 
 

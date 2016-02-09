@@ -20,18 +20,20 @@ class CreateSimulator(Thread):
         self.index = 0
     
     def run(self):
-        while True:
+        while True and self.index<len(self.Xks):
 
-            time.sleep(self.dt/100)
+            time.sleep(self.dt/10)
             U = self.CRC.LastU()
-            X_k_mn1 = self.holder.getState()
-            W = np.matrix([np.random.normal(0,self.Q[i,i],1) for i in range(0,3)] )
-            X_k = X_k_mn1 + B(self.Xks[self.index],self.ro).dot(U)+W
-            print "B:", B(self.Xks[self.index],self.ro)
+            X_k = self.holder.getState()
+            n = [5,5,2*pi/360*5]
+            W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
+            X_k_p1 = X_k + B(X_k[2,0],self.ro).dot(U)#+W
+            #X_k_p1 = X_k + B(self.Xks[self.index],self.ro).dot(U)+W
+            X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             print "Sim:",self.index
             
             t = self.t0+1000*self.index
-            self.holder.setState(X_k,t)
+            self.holder.setState(X_k_p1,t)
             self.index+=1
 
 class CRC_Sim:
@@ -65,6 +67,7 @@ def main():
     '''
     Q = np.eye(3)
     Q = Q*(1.0/1.0)
+    Q[2,2]= 1.0/0.01
     R = np.eye(2)
     R = R*(1.0/50.0)
 
