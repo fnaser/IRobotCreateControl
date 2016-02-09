@@ -47,6 +47,8 @@ class CRC_Sim:
         pass
 
     def directDrive(self,V1,V2):
+        V1= max(min(V1,500),-500)
+        V2= max(min(V2,500),-500)
         self.Us.append(np.matrix([V1,V2]).transpose())
     
     def LastU(self):
@@ -66,10 +68,13 @@ def main():
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    Q = Q*(1.0/1.0)
-    Q[2,2]= 1.0/0.01
+    dist = 1.0
+    speed_dev = 1.0
+
+    Q = Q*(1.0/(dist*dist))
+    Q[2,2]= 1.0/(0.01*0.01)
     R = np.eye(2)
-    R = R*(1.0/50.0)
+    R = R*(1.0/(speed_dev*speed_dev))
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
