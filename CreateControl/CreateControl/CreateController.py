@@ -23,13 +23,13 @@ class CreateController(Thread):
         self.csvFile = open("Run.csv",'wb')
         self.writer = csv.writer(self.csvFile)
         #row = [s[3],self.Xks[index],X,U]
-        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
+        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','DX angle','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
         
 
     def run(self):
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt/10)
+            time.sleep(self.dt)
             
             #print len(self.Uos),len(self.Xks)
 
@@ -42,10 +42,11 @@ class CreateController(Thread):
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                pass
-                #self.offset = X-np.matrix(self.Xks[index]).transpose()
+                self.offset = X-np.matrix(self.Xks[index]).transpose()
+                row = [self.offset[0,0], self.offset[1,0],  self.offset[2,0] ]
+                self.writer.writerow(row)
 
-            #X = X-self.offset
+            X = X-self.offset
             DX = X- np.matrix(self.Xks[index]).transpose()
             DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
 
@@ -58,10 +59,11 @@ class CreateController(Thread):
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
             self.CRC.directDrive(U[1,0],U[0,0])
-            
+            #print Uc
+            #print X
             
             # Log
-            row = [t]+self.Xks[index].tolist()+[X[0,0], X[1,0],  X[2,0] ]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+            row = [t]+self.Xks[index].tolist()+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 
             self.writer.writerow(row)
@@ -75,18 +77,23 @@ def main():
     
     channel = 'VICON_create8'
     r_wheel = 125#mm
-    dt = 1.0
+    dt = 1.0/5.0
     r_circle = 610#mm
-    speed = 64
+    speed = 200 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    Q = Q*(1.0/1.0)
+    dist = 20.0
+    ang = 10.0
+    Q = Q*(1.0/(dist*dist))
+    Q[2,2]= 1.0/(ang*ang)
+
     R = np.eye(2)
-    R = R*(1.0/50.0)
+    speed_dev = 10.0
+    R = R*(1.0/(speed_dev*speed_dev))
 
 
     Xks = circle(r_circle,dt,speed)
@@ -97,7 +104,7 @@ def main():
     #VT1 = ViconTester(sh,10)
     #VT2 = ViconTester(sh,1)
     #VTL = ViconLogger("test1.csv",sh,10)
-    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
@@ -107,7 +114,7 @@ def main():
 
     CC.join()
     VI.join()
-    #VTL.join()
+#    VTL.join()
     print "Done"
 
 if __name__ == "__main__":

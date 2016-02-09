@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2cbdb777-249a-47cd-9bac-5d333461d5bf</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Simulator.py</StartupFile>
+    <StartupFile>CreateController.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

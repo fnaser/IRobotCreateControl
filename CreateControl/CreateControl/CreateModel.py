@@ -33,7 +33,9 @@ U2 = V+R*theta_dot
 '''
 
 def minAngleDif(x,y):
-    return atan2(sin(x-y), cos(x-y))
+     a = atan2(sin(x-y), cos(x-y))
+     #if(a<0):a = 2*pi-a
+     return a
 
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
