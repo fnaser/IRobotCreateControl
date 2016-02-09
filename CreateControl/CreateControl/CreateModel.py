@@ -37,7 +37,7 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
-    Uk = [V+ro*thetadot, V-ro*thetadot]
+    Uk = [V-ro*thetadot, V+ro*thetadot]
     return np.array(Uk) 
 
 
@@ -75,7 +75,7 @@ def B(th,r0):
     '''
     #th = x[2,0]
     #print th
-    B = np.matrix([[.5*sin(th), .5*sin(th)],[.5*cos(th), .5*cos(th)],[-1.0/(2.0*r0), 1.0/(2.0*r0)]])
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
     return B
 
 

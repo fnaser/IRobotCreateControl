@@ -52,7 +52,7 @@ class CreateController(Thread):
             # Generate the correction Term
             if(self.index !=0):
                 # Make the new speed command
-                Uc = self.Ks[index].dot(DX)
+                Uc = self.Ks[index-1].dot(DX)
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
             self.CRC.directDrive(U[1,0],U[0,0])
