@@ -26,6 +26,12 @@ class CreateController(Thread):
         row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','DX angle','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
         
+    def transform(self,X):
+        th = self.offset[2,0]
+        R = np.matrix([[cos(th), -sin(th) ,0],
+                       [sin(th), cos(th)  ,0],
+                       [0,0,1]])
+        return R.dot(X)-self.offset
 
     def run(self):
         while True and self.index<len(self.Uos):
@@ -43,10 +49,8 @@ class CreateController(Thread):
             if(self.index ==0):
                 # for first time step set offset and start movement
                 self.offset = X-np.matrix(self.Xks[index]).transpose()
-                row = [self.offset[0,0], self.offset[1,0],  self.offset[2,0] ]
-                self.writer.writerow(row)
 
-            X = X-self.offset
+            X = transform(X)
             DX = X- np.matrix(self.Xks[index]).transpose()
             DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
 
