@@ -25,9 +25,9 @@ class CreateSimulator(Thread):
             time.sleep(self.dt/10)
             U = self.CRC.LastU()
             X_k = self.holder.getState()
-            n = [5,5,2*pi/360*5]
+            n = [0.1,0.1,2*pi/360]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
-            X_k_p1 = X_k + B(X_k[2,0],self.ro).dot(U)#+W
+            X_k_p1 = X_k + B(X_k[2,0],self.ro).dot(U)+W
             #X_k_p1 = X_k + B(self.Xks[self.index],self.ro).dot(U)+W
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             print "Sim:",self.index
