@@ -47,6 +47,8 @@ class CreateController(Thread):
 
             #X = X-self.offset
             DX = X- np.matrix(self.Xks[index]).transpose()
+            DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
+
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
             # Generate the correction Term

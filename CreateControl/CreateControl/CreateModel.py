@@ -32,6 +32,9 @@ U1 = V-R*theta_dot
 U2 = V+R*theta_dot
 '''
 
+def minAngleDif(x,y):
+    return atan2(sin(x-y), cos(x-y))
+
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
