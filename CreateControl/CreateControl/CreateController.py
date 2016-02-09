@@ -42,9 +42,10 @@ class CreateController(Thread):
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X-np.matrix(self.Xks[index]).transpose()
+                pass
+                #self.offset = X-np.matrix(self.Xks[index]).transpose()
 
-            X = X-self.offset
+            #X = X-self.offset
             DX = X- np.matrix(self.Xks[index]).transpose()
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
@@ -52,13 +53,12 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index-1].dot(DX)/1000.0
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
             # run it
             self.CRC.directDrive(U[1,0],U[0,0])
             
             
             # Log
-            print X[1,0]
             row = [t]+self.Xks[index].tolist()+[X[0,0], X[1,0],  X[2,0] ]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 

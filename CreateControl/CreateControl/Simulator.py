@@ -8,13 +8,14 @@ import sys
 
 
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,ro,dt,Q):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q):
         Thread.__init__(self)
         self.CRC = CRC_sim
         self.holder = stateholder
         self.ro =ro
         self.dt = dt
         self.Q = Q
+        self.Xks = XKs
         self.t0 = int(time.time()*1000)
         self.index = 0
     
@@ -25,8 +26,8 @@ class CreateSimulator(Thread):
             U = self.CRC.LastU()
             X_k_mn1 = self.holder.getState()
             W = np.matrix([np.random.normal(0,self.Q[i,i],1) for i in range(0,3)] )
-            X_k = X_k_mn1 + B(X_k_mn1,self.ro).dot(U)+W
-
+            X_k = X_k_mn1 + B(self.Xks[self.index],self.ro).dot(U)+W
+            print "B:", B(self.Xks[self.index],self.ro)
             print "Sim:",self.index
             
             t = self.t0+1000*self.index
@@ -69,11 +70,11 @@ def main():
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
-    sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
+    sh = StateHolder(lock,np.matrix(Xks[0]).transpose())
 
     CRC =CRC_Sim()
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
-    VSim = CreateSimulator(CRC,sh,r_wheel,dt,Q)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q)
 
     VSim.start()
     time.sleep(0.01)

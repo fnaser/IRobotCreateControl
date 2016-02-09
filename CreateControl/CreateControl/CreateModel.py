@@ -74,7 +74,7 @@ def B(x,r0):
        this expects a 1d array for X
     '''
     th = x[2]
-    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1/(2*r0), -1/(2*r0)]])
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1.0/(2.0*r0), 1.0/(2.0*r0)]])
     return B
 
 
