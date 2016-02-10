@@ -27,11 +27,11 @@ class CreateController(Thread):
         self.writer.writerow(row)
         
     def transform(self,X):
-        th = self.offset[2,0]
+        th = -self.offset[2,0]
         R = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
-        return R.dot(X)-self.offset
+        return R.dot(X-self.offset) + np.matrix(self.Xks[index]).transpose()
 
     def run(self):
         while True and self.index<len(self.Uos):
@@ -48,9 +48,12 @@ class CreateController(Thread):
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X-np.matrix(self.Xks[index]).transpose()
+                self.offset = X
+                O = self.offset
+                row = [O[0,0], O[1,0],  O[2,0] ]
+                self.writer.writerow(row)
 
-            X = transform(X)
+            X = self.transform(X)
             DX = X- np.matrix(self.Xks[index]).transpose()
             DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
 
@@ -60,7 +63,7 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
             # run it
             self.CRC.directDrive(U[1,0],U[0,0])
             #print Uc
@@ -108,7 +111,7 @@ def main():
     #VT1 = ViconTester(sh,10)
     #VT2 = ViconTester(sh,1)
     #VTL = ViconLogger("test1.csv",sh,10)
-    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
