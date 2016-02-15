@@ -26,7 +26,7 @@ class CreateController(Thread):
         row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','DX angle','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
         
-    def transform(self,X,isNot=False):
+    def transform(self,X):
         th = -self.offset[2,0]
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
@@ -35,16 +35,12 @@ class CreateController(Thread):
         Rp = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]]) 
-        if isNot:
-            print 'Rv(x):', Rv.dot(X)
-            print '\nRv(x-O):', Rv.dot(X-self.offset)
-            print '\nRp(Rv(x-O):',Rp.dot(Rv.dot(X-self.offset))
-            print '\nRp(Rv(x-O))+Xk0:\n',Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
+
         return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
 
     def run(self):
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt)
+            time.sleep(self.dt/10)
             
             #print len(self.Uos),len(self.Xks)
 
@@ -62,7 +58,7 @@ class CreateController(Thread):
                 #O = self.offset
                 #row = [O[0,0], O[1,0],  O[2,0] ]
                 #self.writer.writerow(row)
-                X = self.transform(X,True)
+                X = self.transform(X)
             else:
                 X = self.transform(X)
             Xk = np.matrix(self.Xks[index]).transpose()
@@ -85,7 +81,7 @@ class CreateController(Thread):
 
             
             row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
-            #print "I:",index
+            print "I:",index
 
             self.writer.writerow(row)
 
@@ -107,7 +103,7 @@ def main():
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    dist = 20.0
+    dist = 30.0
     ang = 10.0
     Q = Q*(1.0/(dist*dist))
     Q[2,2]= 1.0/(ang*ang)

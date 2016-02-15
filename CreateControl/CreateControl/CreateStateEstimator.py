@@ -3,9 +3,18 @@ from math import *
 from threading import Thread, Lock
 import time
 import numpy as np
-LCM=True
+LCM=False
 if LCM:
     import lcm
+else:
+    class lcm():
+        def __init__(self):
+            pass
+        def subscribe(self,x,y):
+            pass
+        def handle():
+            return True
+
 import sys
 
 import csv
