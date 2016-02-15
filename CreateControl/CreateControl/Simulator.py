@@ -25,10 +25,17 @@ class CreateSimulator(Thread):
             time.sleep(self.dt/10)
             U = self.CRC.LastU()
             X_k = self.holder.getState()
+            if (self.index==0): X_k[0,0]+=20.0
             n = [0.1,0.1,2*pi/360]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
-            X_k_p1 = X_k + B(X_k[2,0],self.ro).dot(U)+W
-            #X_k_p1 = X_k + B(self.Xks[self.index],self.ro).dot(U)+W
+
+
+            K1 = B(X_k[2,0],self.ro).dot(U)
+            K2 = B(X_k[2,0]+self.dt*0.5*K1[2,0],self.ro).dot(U)
+            K3 = B(X_k[2,0]+self.dt*0.5*K2[2,0],self.ro).dot(U)
+            K4 = B(X_k[2,0]+self.dt*K3[2,0],self.ro).dot(U)
+            X_k_p1 = X_k + self.dt/6*(K1+2*K2+2*K3+K4) +W
+
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             print "Sim:",self.index
             
@@ -68,11 +75,12 @@ def main():
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    dist = 1.0
-    speed_dev = 1.0
+    dist = 10.0
+    rad = 0.1
+    speed_dev = 10.0
 
     Q = Q*(1.0/(dist*dist))
-    Q[2,2]= 1.0/(0.01*0.01)
+    Q[2,2]= 1.0/(rad*rad)
     R = np.eye(2)
     R = R*(1.0/(speed_dev*speed_dev))
 
@@ -85,7 +93,7 @@ def main():
     VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q)
 
     VSim.start()
-    time.sleep(0.01)
+    time.sleep(0.05)
     CC.start()
 
     CC.join()
