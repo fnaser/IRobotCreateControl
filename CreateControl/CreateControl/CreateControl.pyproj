@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2cbdb777-249a-47cd-9bac-5d333461d5bf</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>CreateControl.py</StartupFile>
+    <StartupFile>Simulator.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,8 +22,31 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CreateControl.py" />
+    <Compile Include="CreateController.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CreateInterface.py" />
     <Compile Include="CreateModel.py" />
+    <Compile Include="CreateStateEstimator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Simulator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TrajectoryTests.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="vicon\body_deprecated_t.py" />
+    <Compile Include="vicon\body_t.py" />
+    <Compile Include="vicon\marker_t.py" />
+    <Compile Include="vicon\model_t.py" />
+    <Compile Include="vicon\segment_t.py" />
+    <Compile Include="vicon\vicon_t.py" />
+    <Compile Include="vicon\xyz_t.py" />
+    <Compile Include="vicon\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="vicon\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

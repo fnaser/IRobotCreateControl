@@ -5,7 +5,7 @@ from math import *
 import sys
 import time
 
-DEBUG = True
+DEBUG = False#True
 NO_SERIAL = False
 
 class Create_OpMode(IntEnum):
@@ -121,22 +121,30 @@ class CreateRobotCmd(object):
 
 
 def main():
-    CRC = CreateRobotCmd('COM4',Create_OpMode.Full,Create_DriveMode.Drive)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
+        print "starting"
         CRC.start()
-        for i in range(0,3):
+        CRC.stop()
+        return 0
+        for i in range(0,2):
             CRC.directDrive(50,50)
-            time.sleep(10)
+            time.sleep(5)
+            CRC.directDrive(0,-50)
+            time.sleep(5)
+            CRC.directDrive(-50,0)
+            time.sleep(5)
             CRC.directDrive(-50,-50)
         #    time.sleep(10)
             #time.sleep(2)
             #CRC.drive(5*pow(10,(i+1)),100)
-            time.sleep(10)
+            time.sleep(5)
             #CRC.drive(5,100)
         
         CRC.stop()
         #CRC.start()
+        print "Done"
         return 0
 
 if __name__ == "__main__":

@@ -49,3 +49,5 @@ Temporary Items
 *.pyc
 Videos/*
 Videos/IMG_6435.JPG
+*.suo
+*.vs*
