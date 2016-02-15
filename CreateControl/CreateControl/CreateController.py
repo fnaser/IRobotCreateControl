@@ -23,15 +23,20 @@ class CreateController(Thread):
         self.csvFile = open("Run.csv",'wb')
         self.writer = csv.writer(self.csvFile)
         #row = [s[3],self.Xks[index],X,U]
-        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','DX angle','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
+        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','DX angle','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
         
     def transform(self,X):
         th = -self.offset[2,0]
-        R = np.matrix([[cos(th), -sin(th) ,0],
+        Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
-        return R.dot(X-self.offset) + np.matrix(self.Xks[index]).transpose()
+        th = self.Xks[0][2]
+        Rp = np.matrix([[cos(th), -sin(th) ,0],
+                       [sin(th), cos(th)  ,0],
+                       [0,0,1]]) 
+
+        return Rp.dot(Rv.dot(X)-self.offset)+(np.matrix(self.Xks[0]).transpose())
 
     def run(self):
         while True and self.index<len(self.Uos):
@@ -49,12 +54,13 @@ class CreateController(Thread):
             if(self.index ==0):
                 # for first time step set offset and start movement
                 self.offset = X
-                O = self.offset
-                row = [O[0,0], O[1,0],  O[2,0] ]
-                self.writer.writerow(row)
+                #O = self.offset
+                #row = [O[0,0], O[1,0],  O[2,0] ]
+                #self.writer.writerow(row)
 
             X = self.transform(X)
-            DX = X- np.matrix(self.Xks[index]).transpose()
+            Xk = np.matrix(self.Xks[index]).transpose()
+            DX = X- Xk
             DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
 
             U = np.matrix(self.Uos[index]).transpose()
@@ -70,7 +76,9 @@ class CreateController(Thread):
             #print X
             
             # Log
-            row = [t]+self.Xks[index].tolist()+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+
+            
+            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 
             self.writer.writerow(row)
