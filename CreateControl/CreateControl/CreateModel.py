@@ -32,12 +32,17 @@ U1 = V-R*theta_dot
 U2 = V+R*theta_dot
 '''
 
+def minAngleDif(x,y):
+     a = atan2(sin(x-y), cos(x-y))
+     #if(a<0):a = 2*pi-a
+     return a
+
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
-    Uk = [V+ro*thetadot, V-ro*thetadot]
+    Uk = [V-ro*thetadot, V+ro*thetadot]
     return np.array(Uk) 
 
 
@@ -59,7 +64,7 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
-        Bk = B(xtraj[k],r0)
+        Bk = B(xtraj[k][0],r0)
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
@@ -69,10 +74,13 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     return Ktraj_output
 
 
-def B(x,r0):
-    '''returns the B matrix'''
-    th = x[2]
-    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[-1/(2*r0), 1/(2*r0)]])
+def B(th,r0):
+    '''returns the B matrix
+       this expects a 1d array for X
+    '''
+    #th = x[2,0]
+    #print th
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
     return B
 
 

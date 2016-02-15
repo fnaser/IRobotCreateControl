@@ -16,16 +16,28 @@ class CreateController(Thread):
         self.dt = dt
         self.CRC.start()
         self.Xks = Xks
-        self.offset = np.matrix([0,0,0])
+        self.offset = np.matrix([0,0,0]).transpose()
         self.Uos = TrajToUko(Xks,ro,dt)
         self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
         self.index = 0
         self.csvFile = open("Run.csv",'wb')
         self.writer = csv.writer(self.csvFile)
         #row = [s[3],self.Xks[index],X,U]
-        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','U[0]','U[1]','Uc[0]','Uc[1]']
+        row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','DX angle','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
         
+    def transform(self,X):
+        
+        th = -self.offset[2,0]
+        Rv = np.matrix([[cos(th), -sin(th) ,0],
+                       [sin(th), cos(th)  ,0],
+                       [0,0,1]])
+        th = self.Xks[0][2]
+        Rp = np.matrix([[cos(th), -sin(th) ,0],
+                       [sin(th), cos(th)  ,0],
+                       [0,0,1]]) 
+
+        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
 
     def run(self):
         while True and self.index<len(self.Uos):
@@ -34,30 +46,43 @@ class CreateController(Thread):
             #print len(self.Uos),len(self.Xks)
 
             # get the current State
-            s = self.holder.getState()
+            X = self.holder.getState()
+            t = self.holder.getTime()
+            
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
-            X = np.matrix([s[0],s[1],s[2]])
+            #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X-self.Xks[index]
+                self.offset = X
+                print 'offset:',  self.offset
+                #O = self.offset
+                #row = [O[0,0], O[1,0],  O[2,0] ]
+                #self.writer.writerow(row)
 
+            X = self.transform(X)
+            Xk = np.matrix(self.Xks[index]).transpose()
+            DX = X- Xk
+            DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
 
-            X = X-self.offset
-            DX = X- self.Xks[index]
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
             # Generate the correction Term
             if(self.index !=0):
                 # Make the new speed command
-                Uc = self.Ks[index-1].dot(DX.transpose())/1000.0
+                Uc = self.Ks[index].dot(DX)
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
-            self.CRC.directDrive(U[1],U[0])
-            
+            else:
+                U = 2.0*np.matrix(self.Uos[index]).transpose()
+            self.CRC.directDrive(U[1,0],U[0,0])
+            #print Uc
+            #print X
             
             # Log
-            row = [s[3]]+self.Xks[index].tolist()+X.tolist()[0]+[U.tolist()[0][0],U.tolist()[1][0]]+[Uc.tolist()[0][0],Uc.tolist()[1][0]]
+
+            
+            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 
             self.writer.writerow(row)
@@ -71,23 +96,28 @@ def main():
     
     channel = 'VICON_create8'
     r_wheel = 125#mm
-    dt = 1.0
+    dt = 1.0/4.0
     r_circle = 610#mm
-    speed = 64
+    speed = 60 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    Q = Q*(1.0/1.0)
+    dist = 0.1
+    ang = 1.0
+    Q = Q*(1.0/(dist*dist))
+    Q[2,2]= 1.0/(ang*ang)
+
     R = np.eye(2)
-    R = R*(1.0/50.0)
+    speed_dev = 50.0
+    R = R*(1.0/(speed_dev*speed_dev))
 
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
-    sh = StateHolder(lock,[0,0,0])
+    sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
     #VT1 = ViconTester(sh,10)
@@ -97,13 +127,15 @@ def main():
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
-    CC.start()
+    
     VI.start()
+    time.sleep(0.05)
+    CC.start()
     #VTL.start()
 
     CC.join()
     VI.join()
-    #VTL.join()
+#    VTL.join()
     print "Done"
 
 if __name__ == "__main__":

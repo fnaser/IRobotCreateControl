@@ -2,22 +2,39 @@
 from math import *
 from threading import Thread, Lock
 import time
-import lcm
+import numpy as np
+LCM=True
+if LCM:
+    import lcm
+#else:
+#    class lcm():
+#        def __init__(self):
+#            pass
+#        def subscribe(self,x,y):
+#            pass
+#        def handle():
+#            return True
+
 import sys
 
-
+import csv
 
 class StateHolder():
-    def __init__(self,lock,start):
+    def __init__(self,lock,start,t=0):
         self.state = start
+        self.t=t
         self.lock = lock
-    def setState(self,state):
+    def setState(self,state,t):
         self.lock.acquire()
         self.state = state
+        self.t=t
         self.lock.release()
 	#print "set: ",state
     def getState(self):
         return self.state
+    def getTime(self):
+        return self.t
+
 
 def vicon_handler(holder,channel,data):
     msg = body_t.decode(data)
@@ -25,9 +42,10 @@ def vicon_handler(holder,channel,data):
     position = msg.trans
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
-    state = [position[0]*1000.0,position[1]*1000.0,a,t] #[mm,mm,rad,ms since epoch]
+    if a<0: a = 2*pi+a
+    state = np.matrix([position[0]*1000.0,position[1]*1000.0,a]).transpose() #[mm,mm,rad,ms since epoch]
     #print 'handeled:', state
-    holder.setState(state)
+    holder.setState(state,t)
 
 class ViconInterface(Thread):
     def __init__(self,channel,state_holder):
@@ -63,11 +81,14 @@ class ViconLogger(Thread):
 
 	    #print "interval: ",1.0/self.rate
     def run(self):
-        while True:
+        n=1
+        while n<10:
+            print n
+            n+=1
             time.sleep(1.0/self.rate)
             v = self.holder.getState()
             self.writer.writerow(v)
-
+        self.csvFile.close()
 
 def main():
     #http://www.tutorialspoint.com/python/python_multithreading.htm
@@ -91,5 +112,5 @@ def main():
     print "Exiting Main Thread"
 
 
-if __name__ == "__main__":
-    sys.exit(int(main() or 0))
+    if __name__ == "__main__":
+        sys.exit(int(main() or 0))
