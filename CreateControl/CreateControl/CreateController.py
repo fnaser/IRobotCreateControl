@@ -39,7 +39,7 @@ class CreateController(Thread):
             print 'Rv(x):', Rv.dot(X)
             print '\nRv(x-O):', Rv.dot(X-self.offset)
             print '\nRp(Rv(x-O):',Rp.dot(Rv.dot(X-self.offset))
-            print '\nRp(Rv(x-O))+Xk0:\n',Rp.dot(Rv.dot(X)-self.offset)+(np.matrix(self.Xks[0]).transpose())
+            print '\nRp(Rv(x-O))+Xk0:\n',Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
         return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
 
     def run(self):
@@ -125,7 +125,7 @@ def main():
     #VT1 = ViconTester(sh,10)
     #VT2 = ViconTester(sh,1)
     #VTL = ViconLogger("test1.csv",sh,10)
-    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
