@@ -27,6 +27,7 @@ class CreateController(Thread):
         self.writer.writerow(row)
         
     def transform(self,X):
+        
         th = -self.offset[2,0]
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
@@ -40,7 +41,7 @@ class CreateController(Thread):
 
     def run(self):
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt/10)
+            time.sleep(self.dt)
             
             #print len(self.Uos),len(self.Xks)
 
@@ -58,9 +59,8 @@ class CreateController(Thread):
                 #O = self.offset
                 #row = [O[0,0], O[1,0],  O[2,0] ]
                 #self.writer.writerow(row)
-                X = self.transform(X)
-            else:
-                X = self.transform(X)
+
+            X = self.transform(X)
             Xk = np.matrix(self.Xks[index]).transpose()
             DX = X- Xk
             DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
@@ -71,8 +71,10 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
-                U = np.matrix(self.Uos[index]).transpose()#-Uc
+                U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
+            else:
+                U = 2.0*np.matrix(self.Uos[index]).transpose()
             self.CRC.directDrive(U[1,0],U[0,0])
             #print Uc
             #print X
@@ -94,28 +96,28 @@ def main():
     
     channel = 'VICON_create8'
     r_wheel = 125#mm
-    dt = 1.0/5.0
+    dt = 1.0/4.0
     r_circle = 610#mm
-    speed = 200 #64
+    speed = 60 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    dist = 30.0
-    ang = 10.0
+    dist = 0.1
+    ang = 1.0
     Q = Q*(1.0/(dist*dist))
     Q[2,2]= 1.0/(ang*ang)
 
     R = np.eye(2)
-    speed_dev = 10.0
+    speed_dev = 50.0
     R = R*(1.0/(speed_dev*speed_dev))
 
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
-    sh = StateHolder(lock,[0,0,0])
+    sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
     #VT1 = ViconTester(sh,10)
@@ -125,8 +127,10 @@ def main():
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
 
 
-    CC.start()
+    
     VI.start()
+    time.sleep(0.05)
+    CC.start()
     #VTL.start()
 
     CC.join()
