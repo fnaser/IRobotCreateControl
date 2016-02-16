@@ -1,4 +1,4 @@
-from threading import Thread, Lock
+﻿from threading import Thread, Lock
 from CreateStateEstimator import *
 from CreateInterface import *
 from CreateModel import *
@@ -31,15 +31,13 @@ class CreateCharicterizer(Thread):
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
-        th = self.Xks[0][2]
-        Rp = np.matrix([[cos(th), -sin(th) ,0],
-                       [sin(th), cos(th)  ,0],
-                       [0,0,1]]) 
 
-        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
+        return Rv.dot(X-self.offset)
 
     def run(self):
         first = True
+        lastspeed=0
+        last_t = 0
         while True:
             
             X = self.holder.getState()
@@ -53,27 +51,34 @@ class CreateCharicterizer(Thread):
                 print 'offset:',  self.offset
                 first = False
             
-            t = (t-self.t0)/1000000 #convert to seconds since start
+            X=self.transform(X)
+            tk = (t-self.t0)/1000000 #convert to seconds since start
 
-            index = floor(t/self.time)
+            index = int(floor(tk/self.time))
 
-            if index > len(self.speeds) or t>(len(self.speeds)*self.time):
+            if ((index > (len(self.speeds)-1) )or tk>(len(self.speeds)*self.time) ):
                 self.csvFile.close()
+                self.CRC.stop()
                 print "closed"
                 break
-            
-            speed = self.speeds[index]
-            self.CRC.directDrive(speed,speed)
-
-            row = [t,speed]+[X[0,0], X[1,0],  X[2,0] ]
-            self.writer.writerow(row)
+            else:
+                speed = self.speeds[index]
+                if(lastspeed != speed): 
+                    lastspeed = speed
+                    print speed
+                    self.CRC.directDrive(speed,speed)
+                if last_t!= t:
+                    row = [t,speed]+[X[0,0], X[1,0],  X[2,0] ]
+                    self.writer.writerow(row)
+                    last_t=t
+                
 
 def main():
     
     channel = 'VICON_create8'
-
-    speeds = [1,10,50,100,150,200]
-    time_step = 5 #s
+    s = 500
+    speeds = [0,s,0,-s,0,s,0,-s,0,s,0,-s,0,s,0,-s,0]
+    time_step = 1 #s
 
 
     lock = Lock()
