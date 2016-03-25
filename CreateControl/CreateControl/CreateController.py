@@ -73,8 +73,8 @@ class CreateController(Thread):
                 Uc = self.Ks[index].dot(DX)
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
-            else:
-                U = 2.0*np.matrix(self.Uos[index]).transpose()
+            #else:
+            #    U = 2.0*np.matrix(self.Uos[index]).transpose()
             self.CRC.directDrive(U[1,0],U[0,0])
             #print Uc
             #print X
@@ -96,8 +96,8 @@ def main():
     
     channel = 'VICON_create8'
     r_wheel = 125#mm
-    dt = 1.0/4.0
-    r_circle = 610#mm
+    dt = 1.0/5.0
+    r_circle = 400#mm
     speed = 60 #64
 
 
@@ -111,11 +111,14 @@ def main():
     Q[2,2]= 1.0/(ang*ang)
 
     R = np.eye(2)
-    speed_dev = 50.0
+    speed_dev = 20.0
     R = R*(1.0/(speed_dev*speed_dev))
 
+    delay = 0.2#s
 
-    Xks = circle(r_circle,dt,speed)
+    Xks = circle(r_circle,dt,speed,delay)
+    print Xks[0],"\n",Xks[1]
+    print "\n"
     lock = Lock()
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
