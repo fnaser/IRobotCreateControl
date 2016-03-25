@@ -75,10 +75,11 @@ class CreateCharicterizer(Thread):
 
 def main():
     
-    channel = 'VICON_create8'
-    s = 500
-    speeds = [0,s,0,-s,0,s,0,-s,0,s,0,-s,0,s,0,-s,0]
-    time_step = 1 #s
+    channel = 'VICON_sawbot'#'VICON_create8'
+    s = 60
+    speeds = [10,0,20,0,30,0]
+    #speeds = []
+    time_step = 5 #s
 
 
     lock = Lock()
