@@ -113,6 +113,7 @@ class CreateRobotCmd(object):
         '''The direct drive mode allows control over right and left wheels directly. This uses v1 for R and V2 for L'''
         if (self.drivemode != Create_DriveMode.Direct): self.drivemode = Create_DriveMode.Direct
 
+
         V1 = minMax(self.vmin,self.vmax,V1)
         V2 = minMax(self.vmin,self.vmax,V2)
 
@@ -122,24 +123,23 @@ class CreateRobotCmd(object):
 
 def main():
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
+    #'/dev/ttyUSB0'
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
         print "starting"
         CRC.start()
-        CRC.stop()
-        return 0
-        for i in range(0,2):
+        #CRC.stop()
+        #return 0
+        for i in range(0,1):
+            time.sleep(2)
+            print 'forward'
             CRC.directDrive(50,50)
-            time.sleep(5)
-            CRC.directDrive(0,-50)
-            time.sleep(5)
-            CRC.directDrive(-50,0)
-            time.sleep(5)
-            CRC.directDrive(-50,-50)
+            time.sleep(10)
+            #CRC.directDrive(-50,-50)
         #    time.sleep(10)
             #time.sleep(2)
             #CRC.drive(5*pow(10,(i+1)),100)
-            time.sleep(5)
+            #time.sleep(5)
             #CRC.drive(5,100)
         
         CRC.stop()
