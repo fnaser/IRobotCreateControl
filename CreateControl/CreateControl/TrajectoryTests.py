@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 from math import *
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -6,13 +6,23 @@ import sys
 import pylab as pl
 
 
-def circle(r,dt,speed):
+def circle(r,dt,speed,delay=0):
     # mm,s,mm/s
     dist = speed*dt
     c = pi*r*2
     n = int(round(c/dist))
     Xks=[]
     for i in range(0,n+1):
+        if ( i==0 and delay):
+            p = int(delay/dt)+1
+            
+            print p
+            for j in range(0,p):
+                x=r
+                y=0
+                theta = pi/2.0
+                Xks.append([x,y,theta])
+
         x = r*cos(2*pi/n*i)
         y = r*sin(2*pi/n*i)
         theta = (2*pi/n*i+pi/2.0)%(2*pi)
