@@ -42,7 +42,8 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
-    Uk = [V-ro*thetadot, V+ro*thetadot]
+    gain = 1.0328
+    Uk = [gain*(V-ro*thetadot), gain*(V+ro*thetadot)]
     return np.array(Uk) 
 
 
@@ -52,6 +53,10 @@ def TrajToUko(Xks,ro,dt):
         Xk = Xks[i]
         Xkp1 = Xks[i+1]
         Ukos.append(np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt)))
+    for i in range(len(Ukos)-1,0,-1):
+        Uk = Ukos[i]
+        if Uk[0] == 0 and Uk[1]==0:
+            Ukos[i] = Ukos[i+1]
     return Ukos
 
 
@@ -80,7 +85,9 @@ def B(th,r0):
     '''
     #th = x[2,0]
     #print th
+    g = 1.0/1.0328
     B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
+    B=g*B
     return B
 
 
