@@ -9,8 +9,9 @@ import csv
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 10):
         Thread.__init__(self)
+        self.speedup = speedup
         self.CRC = CRC
         self.holder = stateholder
         self.dt = dt
@@ -32,26 +33,28 @@ class CreateController(Thread):
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
+        Zv = np.mat(np.zeros((3,3)))
+        
+        SRv = np.bmat([[Rv,Zv],[Zv,Rv]])
+
         th = self.Xks[0][2]
         Rp = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]]) 
 
-        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
+        SRp = np.bmat([[Rp,Zv],[Zv,Rp]])
+
+        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0][0:3]).transpose())
 
     def run(self):
-        lastConf = np.array([0,0,0]).transpose()
+        lastConf = np.mat([[0],[0],[0]])
         lastT = 0
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt)
-            
-            #print len(self.Uos),len(self.Xks)
+            time.sleep(self.dt/self.speedup)
 
             # get the current State
             Conf = self.holder.GetConfig()
             t = self.holder.getTime()
-            
-            
 
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
             #X = np.matrix([s[0],s[1],s[2]])
@@ -62,8 +65,10 @@ class CreateController(Thread):
                 print 'offset:',  self.offset
                 dt = self.dt
             else:
-                dt = (1.0*t-lastT)*1e-6
-            lastT = t
+                print "t:", t, lastT
+                dt = (1.0*t-lastT)#*1e-6
+            
+            if not dt: dt = self.dt
 
             Conf = self.transform(Conf)
             
@@ -71,7 +76,8 @@ class CreateController(Thread):
             #look out for theta wrap around
             Vconf = (Conf-lastConf)/dt
             Vconf[2,0] = minAngleDif(Conf[2,0],lastConf[2])/dt
-            X_m = np.concatentate((Conf,Vconf),axis=0)
+            lastConf = Conf
+            X_m = np.bmat([ [Conf],[Vconf]] )
 
 
 
@@ -85,7 +91,7 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
             # run it
             #else:
             #    U = 2.0*np.matrix(self.Uos[index]).transpose()

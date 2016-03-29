@@ -65,7 +65,11 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
        R should be 1/ control deviation^2
     '''
     Ktraj = []
-    A = np.bmat([[np.identity(3), dt*np.identity(3)],[ np.zeros(3,3),np.zeros(3,3) ] ])
+    ia = np.mat(np.eye(3))
+    ib = dt*ia
+    za = np.mat(np.zeros((3,3)))
+
+    A = np.bmat([[ia, ib],[za, za]])
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
@@ -88,7 +92,17 @@ def B(th,r0):
     #th = x[2,0]
     #print th
     g = .81
-    B = np.matrix([[0, 0],[0, 0],[0, 0],[g*.5*cos(th), g*.5*cos(th)],[g*.5*sin(th), g*.5*sin(th)],[g/(2.0*r0), -g/(2.0*r0)]])
+    za = np.mat(np.zeros((3,2)))
+    Ba = np.mat([[g*.5*cos(th), g*.5*cos(th)],[g*.5*sin(th), g*.5*sin(th)],[g/(2.0*r0), -g/(2.0*r0)]] )
+
+    B = np.bmat([[za],[Ba]])
     return B
 
+
+def A(dt):
+    Ia = np.mat(np.eye(3))
+    Dt = dt*Ia
+    Za = np.mat(np.zeros((3,3)))
+    A = np.bmat([[Ia,Dt],[Za,Za]])
+    return A
 
