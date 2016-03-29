@@ -61,17 +61,18 @@ def TrajToUko(Xks,ro,dt):
 
 
 def TVLQR(xtraj, utraj, dt, r0, Q, R):
-    '''Q should be 1/distance deviation ^2
-       R should be 1/ speed deviation^2
+    '''Q should be diag([1/distance deviation ^2, 1/speed deviation ^2])
+       R should be 1/ control deviation^2
     '''
     Ktraj = []
+    A = np.matrix([[np.identity(3), dt*np.identity(3)], np.zeros(3,6)])
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
         Bk = B(xtraj[k][0],r0)
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
-        S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
+        S = Q + K.T*R*K + (np.matrix(A + Bk*K).T*S*(A + Bk*K)
         Ktraj.append(K)
     Ktraj_output=[]
     for K in reversed(Ktraj):
@@ -85,9 +86,8 @@ def B(th,r0):
     '''
     #th = x[2,0]
     #print th
-    g = 1.0/1.0328
-    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
-    B=g*B
+    g = .81
+    B = np.matrix([[0, 0],[0, 0],[0, 0],[g*.5*cos(th), g*.5*cos(th)],[g*.5*sin(th), g*.5*sin(th)],[g/(2.0*r0), -g/(2.0*r0)]])
     return B
 
 
