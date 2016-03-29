@@ -65,15 +65,16 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
        R should be 1/ control deviation^2
     '''
     Ktraj = []
-    A = np.matrix([[np.identity(3), dt*np.identity(3)], np.zeros(3,6)])
+    A = np.bmat([[np.identity(3), dt*np.identity(3)],[ np.zeros(3,3),np.zeros(3,3) ] ])
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
         Bk = B(xtraj[k][0],r0)
-        K = -(R + Bk.T*S*Bk).I*Bk.T*S
-        S = Q + K.T*R*K + (np.matrix(A + Bk*K).T*S*(A + Bk*K)
+        K = (R + Bk.T*S*Bk).I*Bk.T*S
+        S = Q + K.T*R*K + (np.matrix(A - Bk*K).T*S*(A - Bk*K))
         Ktraj.append(K)
+
     Ktraj_output=[]
     for K in reversed(Ktraj):
         Ktraj_output.append(K)

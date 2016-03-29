@@ -41,6 +41,7 @@ class CreateController(Thread):
 
     def run(self):
         lastConf = np.array([0,0,0]).transpose()
+        lastT = 0
         while True and self.index<len(self.Uos):
             time.sleep(self.dt)
             
@@ -50,6 +51,8 @@ class CreateController(Thread):
             Conf = self.holder.GetConfig()
             t = self.holder.getTime()
             
+            
+
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
             #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
@@ -57,12 +60,17 @@ class CreateController(Thread):
                 # for first time step set offset and start movement
                 self.offset = Conf
                 print 'offset:',  self.offset
+                dt = self.dt
+            else:
+                dt = (1.0*t-lastT)*1e-6
+            lastT = t
 
             Conf = self.transform(Conf)
+            
 
             #look out for theta wrap around
-            Vconf = (Conf-lastConf)/self.dt
-            Vconf[2,0] = minAngleDif(Conf[2,0],lastConf[2])/self.dt
+            Vconf = (Conf-lastConf)/dt
+            Vconf[2,0] = minAngleDif(Conf[2,0],lastConf[2])/dt
             X_m = np.concatentate((Conf,Vconf),axis=0)
 
 
