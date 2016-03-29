@@ -104,15 +104,21 @@ def main():
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
-    Q = np.eye(3)
-    dist = 0.1
-    ang = 1.0
-    Q = Q*(1.0/(dist*dist))
-    Q[2,2]= 1.0/(ang*ang)
+    #Q = np.eye(6)
+    dist = 30.0 #mm
+    ang = 1.0 # radians
+    #Q = Q*(1.0/(dist*dist))
+    #Q[2,2]= 1.0/(ang*ang)
+    speed_deviation = 5 #mm/s
+    angular_rate_deviation  = 20.0/125.0 # radians / seconds
+    Q = np.diag([1.0/(dist*dist),1.0/(dist*dist),1.0/(ang*ang),1/(speed_deviation*speed_deviation),1/(speed_deviation*speed_deviation),1.0/(angular_rate_deviation* angular_rate_deviation)])
+    
+
+
 
     R = np.eye(2)
-    speed_dev = 20.0
-    R = R*(1.0/(speed_dev*speed_dev))
+    command_variation = 20.0
+    R = np.diag([1/( command_variation * command_variation ), 1/( command_variation * command_variation )] )
 
     delay = 0.2#s
 
