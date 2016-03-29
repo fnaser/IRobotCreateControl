@@ -40,13 +40,14 @@ class CreateController(Thread):
         return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
 
     def run(self):
+        lastConf = np.array([0,0,0]).transpose()
         while True and self.index<len(self.Uos):
             time.sleep(self.dt)
             
             #print len(self.Uos),len(self.Xks)
 
             # get the current State
-            X = self.holder.getState()
+            Conf = self.holder.GetConfig()
             t = self.holder.getTime()
             
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
@@ -54,16 +55,21 @@ class CreateController(Thread):
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X
+                self.offset = Conf
                 print 'offset:',  self.offset
-                #O = self.offset
-                #row = [O[0,0], O[1,0],  O[2,0] ]
-                #self.writer.writerow(row)
 
-            X = self.transform(X)
+            Conf = self.transform(Conf)
+
+            #look out for theta wrap around
+            Vconf = (Conf-lastConf)/self.dt
+            Vconf[2,0] = minAngleDif(Conf[2,0],lastConf[2])/self.dt
+            X_m = np.concatentate((Conf,Vconf),axis=0)
+
+
+
             Xk = np.matrix(self.Xks[index]).transpose()
-            DX = X- Xk
-            DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
+            DX = X_m- Xk
+            DX[2,0] = minAngleDif(X_m[2,0],self.Xks[index][2])
 
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
@@ -82,7 +88,7 @@ class CreateController(Thread):
             # Log
 
             
-            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[Conf[0,0], Conf[1,0],  Conf[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
             print "I:",index
 
             self.writer.writerow(row)
@@ -120,11 +126,9 @@ def main():
     command_variation = 20.0
     R = np.diag([1/( command_variation * command_variation ), 1/( command_variation * command_variation )] )
 
-    delay = 0.2#s
-
-    Xks = circle(r_circle,dt,speed,delay)
-    print Xks[0],"\n",Xks[1]
-    print "\n"
+    Xks = circle(r_circle,dt,speed)
+    #print Xks[0],"\n",Xks[1]
+    #print "\n"
     lock = Lock()
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 

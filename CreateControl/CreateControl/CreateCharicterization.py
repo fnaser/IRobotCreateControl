@@ -40,7 +40,7 @@ class CreateCharicterizer(Thread):
         last_t = 0
         while True:
             
-            X = self.holder.getState()
+            X = self.holder.GetConfig()
             t = self.holder.getTime()
             
             

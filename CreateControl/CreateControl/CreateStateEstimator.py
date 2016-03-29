@@ -30,7 +30,7 @@ class StateHolder():
         self.t=t
         self.lock.release()
 	#print "set: ",state
-    def getState(self):
+    def GetConfig(self):
         return self.state
     def getTime(self):
         return self.t
@@ -69,7 +69,7 @@ class ViconTester(Thread):
     def run(self):
         while True:
             time.sleep(1.0/self.rate)
-            print "rate:%0.2f"%self.rate, self.holder.getState()
+            print "rate:%0.2f"%self.rate, self.holder.GetConfig()
 
 class ViconLogger(Thread):
     def __init__(self,name,state_holder,rate):
