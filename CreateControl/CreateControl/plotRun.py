@@ -87,7 +87,19 @@ def plotCSVRun(file = 'run.csv'):
     # plot of U
     #    sub plot of Uo 
     #    sub plot of Uc     
+    plt.figure(4)
+    plt.subplot(211)    
+    plt.plot(T,Uo0,'-',label ="Uo 0", linewidth=2)
+    plt.plot(T,Uo1,'--',label ="Uo 1",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title('Baseline speeds time')
 
+    plt.subplot(212)    
+    plt.plot(T,Uc0,'-',label ="Uc 0", linewidth=2)
+    plt.plot(T,Uc1,'--',label ="Uc 1",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title('Baseline speeds time')
+    plt.title('Controller speeds')
     #
 
     plt.show()
