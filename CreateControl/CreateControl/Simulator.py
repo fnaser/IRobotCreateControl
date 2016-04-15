@@ -9,7 +9,7 @@ import sys
 from plotRun import plotCSVRun
 
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10,timelock=None):
         Thread.__init__(self)
         self.CRC = CRC_sim
         self.holder = stateholder
@@ -20,6 +20,7 @@ class CreateSimulator(Thread):
         self.t0 = int(time.time()*1000)
         self.index = 0
         self.speedup=speedup
+        self.ticktock = timelock
     
     def run(self):
         X_k = np.mat(np.zeros( (6,1) ) )
@@ -54,8 +55,16 @@ class CreateSimulator(Thread):
             print "Sim:",self.index
             
             t = self.t0+1000*self.index
-            self.holder.setState(X_k_p1[0:3],t)
-            self.index+=1
+
+            step = False
+            if self.ticktock == None: step=True
+            elif self.ticktock.simTick(): 
+                step = True
+                self.ticktock.setSimI(self.index+1)
+
+            if step:
+                self.holder.setState(X_k_p1[0:3],t)
+                self.index+=1
 
 class CRC_Sim:
     def __init__(self):
@@ -113,18 +122,20 @@ def main():
     speedup = 10.0
 
     sh = StateHolder(lock,start)
+    timelock = TickTock()
 
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,speedup)
-    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,speedup)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,speedup,timelock)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,speedup,timelock)
 
     VSim.start()
-    time.sleep(0.05)
+    #time.sleep(0.005)
     CC.start()
 
     CC.join()
     VSim.join()
     print 'Done'
+    time.sleep(0.05)
     plotCSVRun()
     return 0
 

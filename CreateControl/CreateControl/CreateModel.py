@@ -93,9 +93,12 @@ def B(th,r0):
     #print th
     g = .81
     za = np.mat(np.zeros((3,2)))
-    Ba = np.mat([[g*.5*cos(th), g*.5*cos(th)],[g*.5*sin(th), g*.5*sin(th)],[g/(2.0*r0), -g/(2.0*r0)]] )
+    Ba = np.mat([[g*.5*cos(th), g*.5*cos(th)],
+                 [g*.5*sin(th), g*.5*sin(th)],
+                 [g/(2.0*r0), -g/(2.0*r0)]] )
 
-    B = np.bmat([[za],[Ba]])
+    B = np.bmat([[za],
+                 [Ba]])
     return B
 
 

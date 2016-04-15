@@ -7,11 +7,32 @@ import sys
 
 import csv
 
+class TickTock():
+    def __init__(self):
+        self.SimI=0
+        self.ConI=0
+        self.lock = Lock()
+    def setSimI(self,I):
+        #self.lock.acquire()
+        self.SimI = I
+        #self.lock.release()
+    def setConI(self,I):
+        #self.lock.acquire()
+        self.ConI = I
+        #self.lock.release()
+	#print "set: ",state
+    def simTick(self):
+        return self.ConI>=self.SimI
+    def conTick(self):
+        return self.ConI<=self.SimI
+
+
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 10):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 10,ticktoc = None):
         Thread.__init__(self)
         self.speedup = speedup
+        self.ticktock = ticktoc
         self.CRC = CRC
         self.holder = stateholder
         self.dt = dt
@@ -51,7 +72,7 @@ class CreateController(Thread):
         lastT = 0
         while True and self.index<len(self.Uos):
             time.sleep(self.dt/self.speedup)
-
+            
             # get the current State
             Conf = self.holder.GetConfig()
             t = self.holder.getTime()
@@ -93,21 +114,24 @@ class CreateController(Thread):
                 Uc = self.Ks[index].dot(DX)
                 U = np.matrix(self.Uos[index]).transpose()#-Uc
             # run it
-            #else:
-            #    U = 2.0*np.matrix(self.Uos[index]).transpose()
-            self.CRC.directDrive(U[1,0],U[0,0])
-            #print Uc
-            #print X
-            
-            # Log
 
-            
-            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[Conf[0,0], Conf[1,0],  Conf[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
-            print "I:",index
+            step = False
+            if self.ticktock == None: step=True
+            elif self.ticktock.conTick(): 
+                step = True
+                self.ticktock.setConI(self.index+1)
 
-            self.writer.writerow(row)
+            if step:
+                self.CRC.directDrive(U[1,0],U[0,0])
 
-            self.index +=1
+                # add to log
+                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[Conf[0,0], Conf[1,0],  Conf[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+                print "I:",index
+
+                self.writer.writerow(row)
+
+                self.index +=1
+
         self.CRC.stop()
         self.csvFile.close()
         print "closed"

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import sys
 import pylab as pl
-
+from CreateModel import *
 
 def circle(r,dt,speed):
     # mm,s,mm/s
@@ -23,6 +23,7 @@ def circle(r,dt,speed):
             dXk = [0,0,0]
         else:
             dXk = [ (Xk[i]-lastXk[i])/dt for i in range(0,3) ]
+            dXk[2] = dXk[2]%(2*pi)
         lastXk = Xk
         finalXk = Xk+dXk
 
@@ -38,13 +39,32 @@ def main():
     xs = circle(r,dt,speed)
     fig,ax=pl.subplots()
     X = np.array(xs)
-    #ax.plot(X[:,0],X[:,1],'bx-')
-    ax.plot(X[:,3])
-    ax.autoscale()
-    ax.margins(0.1)
-    ax.axis('equal')
+
+    plt.figure(1)
+    plt.subplot(111)
+    plt.plot(X[:,0],X[:,1],'bx-')
     plt.axis('equal')
+
+    plt.figure(2)
+    plt.subplot(211)
+    plt.plot(X[:,3])
+    plt.plot(X[:,4])
+    plt.subplot(212)
+    plt.plot(X[:,5])
+
+
+
+
+    r_wheel = 125
+    dt = 1.0/5.0
+    UKs = TrajToUko(xs,r_wheel,dt)
+    plt.figure(3)
+    U = np.array(UKs)
+    plt.plot(U[:,0])
+    plt.plot(U[:,1])
+
     plt.show()
+    return 0
 
 
 
