@@ -6,6 +6,7 @@ from CreateController import *
 from TrajectoryTests import *
 import sys
 
+from plotRun import plotCSVRun
 
 class CreateSimulator(Thread):
     def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10):
@@ -124,6 +125,8 @@ def main():
     CC.join()
     VSim.join()
     print 'Done'
+    plotCSVRun()
+    return 0
 
 
 if __name__ == "__main__":

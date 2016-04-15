@@ -73,16 +73,25 @@ def plotCSVRun(file = 'run.csv'):
     vAngDif = np.vectorize(minAngleDif,otypes=[np.float])
     Etheta =  vAngDif(Theta_actual,Theta_target)
     plt.figure(3)
-    plt.subplot(211)    
+    plt.subplot(311)    
     plt.plot(T,Ex,'-',label ="X Error", linewidth=2)
     plt.plot(T,Ey,'--',label ="Y Error",linewidth=2)
     plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
     plt.title('XY Error over time')
 
-    plt.subplot(212)    
+    plt.subplot(312)    
     plt.plot(T,Etheta,'-',label =r"$\theta$ Error", linewidth=2)
     plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
     plt.title('Angle Error over time')
+
+
+    R_error = np.sqrt(np.square(Ex)+np.square(Ey));
+ 
+    plt.subplot(313)    
+    plt.plot(T,R_error,'-',label =r"Radial Error", linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title('Radial Error over time')
+
 
     # plot of U
     #    sub plot of Uo 
