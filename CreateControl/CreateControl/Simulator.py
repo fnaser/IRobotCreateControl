@@ -5,7 +5,7 @@ from CreateModel import *
 from CreateController import *
 from TrajectoryTests import *
 import sys
-
+from plotRun import *
 
 class CreateSimulator(Thread):
     def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q):
@@ -34,7 +34,7 @@ class CreateSimulator(Thread):
             K2 = B(X_k[2,0]+self.dt*0.5*K1[2,0],self.ro).dot(U)
             K3 = B(X_k[2,0]+self.dt*0.5*K2[2,0],self.ro).dot(U)
             K4 = B(X_k[2,0]+self.dt*K3[2,0],self.ro).dot(U)
-            X_k_p1 = X_k + self.dt/6*(K1+2*K2+2*K3+K4) +W
+            X_k_p1 = X_k + self.dt/6*(K1+2*K2+2*K3+K4) #+W
 
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             print "Sim:",self.index
@@ -64,9 +64,9 @@ class CRC_Sim:
         return np.matrix([0,0]).transpose()
 
 def main():
-    channel = 'VICON_create8'
+    channel = 'VICON_sawbot'
     r_wheel = 125#mm
-    dt = 1.0
+    dt = 1.0/5.0
     r_circle = 610#mm
     speed = 64
 
@@ -75,9 +75,9 @@ def main():
     R should be 1/ speed deviation^2
     '''
     Q = np.eye(3)
-    dist = 10.0
-    rad = 0.1
-    speed_dev = 10.0
+    dist = 1.0
+    rad = 1.0
+    speed_dev = 1.0
 
     Q = Q*(1.0/(dist*dist))
     Q[2,2]= 1.0/(rad*rad)
@@ -99,6 +99,7 @@ def main():
     CC.join()
     VSim.join()
     print 'Done'
+    plotCSVRun()
 
 
 if __name__ == "__main__":

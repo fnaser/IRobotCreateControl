@@ -41,7 +41,7 @@ class CreateController(Thread):
 
     def run(self):
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt)
+            time.sleep(self.dt/10)
             
             #print len(self.Uos),len(self.Xks)
 
