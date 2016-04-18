@@ -7,6 +7,8 @@ import sys
 
 import csv
 
+from plotRun import plotCSVRun
+
 
 class CreateCharicterizer(Thread):
     def __init__(self,CRC,stateholder,speeds,time_step):
@@ -15,6 +17,7 @@ class CreateCharicterizer(Thread):
         self.holder = stateholder
         self.speeds = speeds
         self.time = time_step
+        
 
         self.CRC.start()
         self.offset = np.matrix([0,0,0]).transpose()
@@ -38,6 +41,7 @@ class CreateCharicterizer(Thread):
         first = True
         lastspeed=0
         last_t = 0
+
         while True:
             
             X = self.holder.getState()
@@ -71,6 +75,7 @@ class CreateCharicterizer(Thread):
                     row = [t,speed]+[X[0,0], X[1,0],  X[2,0] ]
                     self.writer.writerow(row)
                     last_t=t
+    
                 
 
 def main():
@@ -78,7 +83,9 @@ def main():
     channel = 'VICON_create8'
     s = 500
     speeds = [0,s,0,-s,0,s,0,-s,0,s,0,-s,0,s,0,-s,0]
+    
     time_step = 1 #s
+
 
 
     lock = Lock()
@@ -96,9 +103,10 @@ def main():
     #VTL.start()
 
     CC.join()
-    VI.join()
+    #VI.join()
 #    VTL.join()
     print "Done"
+    plotCSVRun()
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))

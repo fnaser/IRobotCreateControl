@@ -33,6 +33,7 @@
     <Compile Include="CreateStateEstimator.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="plotRun.py" />
     <Compile Include="Simulator.py">
       <SubType>Code</SubType>
     </Compile>
