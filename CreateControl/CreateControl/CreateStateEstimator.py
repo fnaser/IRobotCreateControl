@@ -43,9 +43,9 @@ def vicon_handler(holder,channel,data):
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
     if a<0: a = 2*pi+a
-    state = np.matrix([position[0]*1000.0,position[1]*1000.0,a]).transpose() #[mm,mm,rad,ms since epoch]
+    state = np.matrix([position[0]*1000.0,position[1]*1000.0,a]).transpose() #[mm,mm,rad],ms since epoch]
     #print 'handeled:', state
-    holder.setState(state,t)
+    holder.setState(state,t) # [mm,mm,rad], ms since epoch]
 
 class ViconInterface(Thread):
     def __init__(self,channel,state_holder):
