@@ -3,7 +3,7 @@ from math import *
 from threading import Thread, Lock
 import time
 import numpy as np
-LCM=True
+LCM=False
 if LCM:
     import lcm
 #else:
@@ -30,7 +30,7 @@ class StateHolder():
         self.t=t
         self.lock.release()
 	#print "set: ",state
-    def getState(self):
+    def GetConfig(self):
         return self.state
     def getTime(self):
         return self.t
@@ -43,9 +43,9 @@ def vicon_handler(holder,channel,data):
     s,x,y,z = msg.quat
     a = 2*atan2(z,s)
     if a<0: a = 2*pi+a
-    state = np.matrix([position[0]*1000.0,position[1]*1000.0,a]).transpose() #[mm,mm,rad,ms since epoch]
+    state = np.matrix([position[0]*1000.0,position[1]*1000.0,a]).transpose() #[mm,mm,rad],ms since epoch]
     #print 'handeled:', state
-    holder.setState(state,t)
+    holder.setState(state,t) # [mm,mm,rad], ms since epoch]
 
 class ViconInterface(Thread):
     def __init__(self,channel,state_holder):
@@ -69,7 +69,7 @@ class ViconTester(Thread):
     def run(self):
         while True:
             time.sleep(1.0/self.rate)
-            print "rate:%0.2f"%self.rate, self.holder.getState()
+            print "rate:%0.2f"%self.rate, self.holder.GetConfig()
 
 class ViconLogger(Thread):
     def __init__(self,name,state_holder,rate):

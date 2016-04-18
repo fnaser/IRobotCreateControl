@@ -43,9 +43,8 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
     
-    g = 0.7964
-
-    Uk = [(V-ro*thetadot)/g,(V+ro*thetadot)/g]
+    g = 1.15#1.25565# 1/ 0.7964
+    Uk = [(V-ro*thetadot)*g,(V+ro*thetadot)*g]
     return np.array(Uk) 
 
 
@@ -55,14 +54,21 @@ def TrajToUko(Xks,ro,dt):
         Xk = Xks[i]
         Xkp1 = Xks[i+1]
         Ukos.append(np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt)))
+    #for i in range(len(Ukos)-1,0,-1):
+    #    Uk = Ukos[i]
+    #    if Uk[0] == 0 and Uk[1]==0:
+    #        Ukos[i] = Ukos[i+1]
     return Ukos
 
 
 def TVLQR(xtraj, utraj, dt, r0, Q, R):
-    '''Q should be 1/distance deviation ^2
-       R should be 1/ speed deviation^2
+    '''Q should be diag([1/distance deviation ^2, 1/speed deviation ^2])
+       R should be 1/ control deviation^2
     '''
     Ktraj = []
+    ia = np.mat(np.eye(3))
+
+    A = np.mat(np.eye(3))
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
@@ -71,6 +77,7 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
         K = -(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
+
     Ktraj_output=[]
     for K in reversed(Ktraj):
         Ktraj_output.append(K)
@@ -81,10 +88,15 @@ def B(th,r0):
     '''returns the B matrix
        this expects a 1d array for X
     '''
-    #th = x[2,0]
-    #print th
     g = 0.7964
     B = g*np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
     return B
 
+
+def A(dt):
+    Ia = np.mat(np.eye(3))
+    #Dt = dt*Ia
+    #Za = np.mat(np.zeros((3,3)))
+    #A = np.bmat([[Ia,Dt],[Za,Za]])
+    return Ia
 

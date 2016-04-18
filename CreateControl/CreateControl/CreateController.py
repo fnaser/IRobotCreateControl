@@ -7,10 +7,32 @@ import sys
 
 import csv
 
+class TickTock():
+    def __init__(self):
+        self.SimI=0
+        self.ConI=0
+        self.lock = Lock()
+    def setSimI(self,I):
+        #self.lock.acquire()
+        self.SimI = I
+        #self.lock.release()
+    def setConI(self,I):
+        #self.lock.acquire()
+        self.ConI = I
+        #self.lock.release()
+	#print "set: ",state
+    def simTick(self):
+        return self.ConI>=self.SimI
+    def conTick(self):
+        return self.ConI<=self.SimI
+
+
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 10,ticktoc = None):
         Thread.__init__(self)
+        self.speedup = speedup
+        self.ticktock = ticktoc
         self.CRC = CRC
         self.holder = stateholder
         self.dt = dt
@@ -32,38 +54,55 @@ class CreateController(Thread):
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
+        #Zv = np.mat(np.zeros((3,3)))
+        #SRv = np.bmat([[Rv,Zv],[Zv,Rv]])
+
         th = self.Xks[0][2]
         Rp = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]]) 
 
-        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0]).transpose())
+        #SRp = np.bmat([[Rp,Zv],[Zv,Rp]])
+
+        return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0][0:3]).transpose())
 
     def run(self):
+        lastConf = np.mat([[0],[0],[0]])
+        lastT = 0
         while True and self.index<len(self.Uos):
-            time.sleep(self.dt/10)
-            
-            #print len(self.Uos),len(self.Xks)
 
-            # get the current State
-            X = self.holder.getState()
-            t = self.holder.getTime()
+            time.sleep(self.dt/self.speedup)
+
             
+            # get the current State
+            X_m = self.holder.GetConfig()
+            t = self.holder.getTime()
+
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
             #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
-                self.offset = X
+                self.offset = X_m
                 print 'offset:',  self.offset
-                #O = self.offset
-                #row = [O[0,0], O[1,0],  O[2,0] ]
-                #self.writer.writerow(row)
+                dt = self.dt
+            else:
+                print "t:", t, lastT
+                dt = (1.0*t-lastT)#*1e-6
+            
+            if not dt: dt = self.dt
 
-            X = self.transform(X)
+            X_m = self.transform(X_m)
+            
+
+            #look out for theta wrap around
+
+
+
+
             Xk = np.matrix(self.Xks[index]).transpose()
-            DX = X- Xk
-            DX[2,0] = minAngleDif(X[2,0],self.Xks[index][2])
+            DX = X_m- Xk
+            DX[2,0] = minAngleDif(X_m[2,0],self.Xks[index][2])
 
             U = np.matrix(self.Uos[index]).transpose()
             Uc = np.matrix([0,0]).transpose()
@@ -71,23 +110,26 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
             # run it
-            else:
-                U = 2.0*np.matrix(self.Uos[index]).transpose()
-            self.CRC.directDrive(U[1,0],U[0,0])
-            #print Uc
-            #print X
-            
-            # Log
 
-            
-            row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X[0,0], X[1,0],  X[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
-            print "I:",index
+            step = False
+            if self.ticktock == None: step=True
+            elif self.ticktock.conTick(): 
+                step = True
+                self.ticktock.setConI(self.index+1)
 
-            self.writer.writerow(row)
+            if step:
+                self.CRC.directDrive(U[1,0],U[0,0])
 
-            self.index +=1
+                # add to log
+                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+                print "I:",index
+
+                self.writer.writerow(row)
+
+                self.index +=1
+
         self.CRC.stop()
         self.csvFile.close()
         print "closed"
@@ -96,26 +138,33 @@ def main():
     
     channel = 'VICON_create8'
     r_wheel = 125#mm
-    dt = 1.0/4.0
-    r_circle = 610#mm
+    dt = 1.0/5.0
+    r_circle = 400#mm
     speed = 60 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
-    Q = np.eye(3)
-    dist = 0.1
-    ang = 1.0
-    Q = Q*(1.0/(dist*dist))
-    Q[2,2]= 1.0/(ang*ang)
+    #Q = np.eye(6)
+    dist = 30.0 #mm
+    ang = 1.0 # radians
+    #Q = Q*(1.0/(dist*dist))
+    #Q[2,2]= 1.0/(ang*ang)
+    speed_deviation = 5 #mm/s
+    angular_rate_deviation  = 20.0/125.0 # radians / seconds
+    Q = np.diag([1.0/(dist*dist),1.0/(dist*dist),1.0/(ang*ang),1/(speed_deviation*speed_deviation),1/(speed_deviation*speed_deviation),1.0/(angular_rate_deviation* angular_rate_deviation)])
+    
+
+
 
     R = np.eye(2)
-    speed_dev = 50.0
-    R = R*(1.0/(speed_dev*speed_dev))
-
+    command_variation = 20.0
+    R = np.diag([1/( command_variation * command_variation ), 1/( command_variation * command_variation )] )
 
     Xks = circle(r_circle,dt,speed)
+    #print Xks[0],"\n",Xks[1]
+    #print "\n"
     lock = Lock()
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 

@@ -5,10 +5,12 @@ from CreateModel import *
 from CreateController import *
 from TrajectoryTests import *
 import sys
+
 from plotRun import *
 
+
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10,timelock=None):
         Thread.__init__(self)
         self.CRC = CRC_sim
         self.holder = stateholder
@@ -18,14 +20,21 @@ class CreateSimulator(Thread):
         self.Xks = XKs
         self.t0 = int(time.time()*1000)
         self.index = 0
+        self.speedup=speedup
+        self.ticktock = timelock
     
     def run(self):
+        X_k = np.mat(np.zeros( (6,1) ) )
+        print "start sim"
         while True and self.index<len(self.Xks):
-
-            time.sleep(self.dt/10)
+            time.sleep(self.dt/self.speedup)
             U = self.CRC.LastU()
-            X_k = self.holder.getState()
-            if (self.index==0): X_k[0,0]+=20.0
+            if self.index == 0:
+                X_k  = self.holder.GetConfig()
+
+            #print "Sim: ", Conf.shape
+            Conf = self.holder.GetConfig()
+            #if (self.index==0): Conf[0,0]+=20.0
             n = [0.1,0.1,2*pi/360]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
 
@@ -34,14 +43,28 @@ class CreateSimulator(Thread):
             K2 = B(X_k[2,0]+self.dt*0.5*K1[2,0],self.ro).dot(U)
             K3 = B(X_k[2,0]+self.dt*0.5*K2[2,0],self.ro).dot(U)
             K4 = B(X_k[2,0]+self.dt*K3[2,0],self.ro).dot(U)
-            X_k_p1 = X_k + self.dt/6*(K1+2*K2+2*K3+K4) #+W
 
+
+
+            #    B returns a 6x1 but X_k is 3x1
+            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) #+W
+            #print A(self.dt)
+            #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
+            X_k = X_k_p1
             print "Sim:",self.index
             
             t = self.t0+1000*self.index
-            self.holder.setState(X_k_p1,t)
-            self.index+=1
+
+            step = False
+            if self.ticktock == None: step=True
+            elif self.ticktock.simTick(): 
+                step = True
+                self.ticktock.setSimI(self.index+1)
+
+            if step:
+                self.holder.setState(X_k_p1[0:3],t)
+                self.index+=1
 
 class CRC_Sim:
     def __init__(self):
@@ -67,39 +90,57 @@ def main():
     channel = 'VICON_sawbot'
     r_wheel = 125#mm
     dt = 1.0/5.0
-    r_circle = 610#mm
-    speed = 64
+
+    r_circle = 400#mm
+    speed = 60 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
-    Q = np.eye(3)
-    dist = 1.0
-    rad = 1.0
-    speed_dev = 1.0
 
-    Q = Q*(1.0/(dist*dist))
-    Q[2,2]= 1.0/(rad*rad)
+    dist = 3.0 #mm
+    ang = 1.0/10.0 # radians
+
+    Q = np.diag([1.0/(dist*dist),
+                 1.0/(dist*dist),
+                 1.0/(ang*ang)])
+
+
     R = np.eye(2)
-    R = R*(1.0/(speed_dev*speed_dev))
+    command_variation = 1.0
+    R = np.diag([1/( command_variation * command_variation ),
+                 1/( command_variation * command_variation )] )
+
+
 
     Xks = circle(r_circle,dt,speed)
     lock = Lock()
-    sh = StateHolder(lock,np.matrix(Xks[0]).transpose())
+
+    start = np.matrix(Xks[0][0:3]).transpose()
+
+    print start
+
+    speedup = 10.0
+
+    sh = StateHolder(lock,start)
+    timelock = TickTock()
 
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
-    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,speedup,timelock)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,speedup,timelock)
 
     VSim.start()
-    time.sleep(0.05)
+    #time.sleep(0.005)
     CC.start()
 
     CC.join()
     VSim.join()
     print 'Done'
+    time.sleep(0.05)
     plotCSVRun()
+    return 0
+
 
 
 if __name__ == "__main__":
