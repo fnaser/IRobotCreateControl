@@ -29,15 +29,13 @@ class CreateSimulator(Thread):
         while True and self.index<len(self.Xks):
             time.sleep(self.dt/self.speedup)
             U = self.CRC.LastU()
-            if self.index == 0:
-                X_k  = self.holder.GetConfig()
 
-            #print "Sim: ", Conf.shape
-            Conf = self.holder.GetConfig()
+            X_k  = self.holder.GetConfig()
+
             #if (self.index==0): Conf[0,0]+=20.0
-            n = [0.1,0.1,2*pi/360]
+            n = [0.1,0.1,2*pi/360/4]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
-
+            #print W
 
             K1 = B(X_k[2,0],self.ro).dot(U)
             K2 = B(X_k[2,0]+self.dt*0.5*K1[2,0],self.ro).dot(U)
@@ -46,15 +44,15 @@ class CreateSimulator(Thread):
 
 
 
-            #    B returns a 6x1 but X_k is 3x1
-            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) #+W
+            #    B returns a 3x1 but X_k is 3x1
+            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) +W
             #print A(self.dt)
             #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             X_k = X_k_p1
             print "Sim:",self.index
             
-            t = self.t0+1000*self.index
+            t = self.t0+self.dt*1000*self.index
 
             step = False
             if self.ticktock == None: step=True
@@ -92,15 +90,15 @@ def main():
     dt = 1.0/5.0
 
     r_circle = 400#mm
-    speed = 60 #64
+    speed = 25 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
 
-    dist = 3.0 #mm
-    ang = 1.0/10.0 # radians
+    dist = 20.0 #mm
+    ang = 1.0 # radians
 
     Q = np.diag([1.0/(dist*dist),
                  1.0/(dist*dist),
@@ -108,7 +106,7 @@ def main():
 
 
     R = np.eye(2)
-    command_variation = 1.0
+    command_variation = 10.0
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
@@ -121,7 +119,7 @@ def main():
 
     print start
 
-    speedup = 10.0
+    speedup = 100.0
 
     sh = StateHolder(lock,start)
     timelock = TickTock()

@@ -38,20 +38,13 @@ def main():
     plt.plot(X[:,0],X[:,1],'bx-')
     plt.axis('equal')
 
-    plt.figure(2)
-    plt.subplot(211)
-    plt.plot(X[:,3])
-    plt.plot(X[:,4])
-    plt.subplot(212)
-    plt.plot(X[:,5])
-
 
 
 
     r_wheel = 125
     dt = 1.0/5.0
     UKs = TrajToUko(xs,r_wheel,dt)
-    plt.figure(3)
+    plt.figure(2)
     U = np.array(UKs)
     plt.plot(U[:,0])
     plt.plot(U[:,1])

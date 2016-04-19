@@ -43,7 +43,7 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
     
-    g = 1.15#1.25565# 1/ 0.7964
+    g = 1.25565# 1/ 0.7964
     Uk = [(V-ro*thetadot)*g,(V+ro*thetadot)*g]
     return np.array(Uk) 
 
@@ -68,13 +68,13 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     Ktraj = []
     ia = np.mat(np.eye(3))
 
-    A = np.mat(np.eye(3))
+    Ak = A(dt)
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
     for k in range(len(xtraj)-1,-1,-1):
         Bk = B(xtraj[k][0],r0)
-        K = -(R + Bk.T*S*Bk).I*Bk.T*S
+        K = -(R + Bk.T*S*Bk).I*Bk.T*S #-(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)
 

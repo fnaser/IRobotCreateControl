@@ -110,7 +110,7 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
-                U = np.matrix(self.Uos[index]).transpose()#-Uc
+                U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
 
             step = False
