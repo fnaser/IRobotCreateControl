@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import numpy as np
 from numpy import genfromtxt
 import matplotlib
@@ -113,6 +113,54 @@ def plotCSVRun(file = 'run.csv'):
 
     plt.show()
 
+def plotCharicterizationRun(file = 'run.csv'):
+    data = genfromtxt(file,delimiter = ',')
+    print data.shape
+    headings = data[0,:]
+    data = np.delete(data,0,0)
+    print data.shape
+    
+    # convert T from ms since epoch to seconds since start
+    T = data[:,0]
+    T = T-T[0]
+    T = T/(1e4)
+
+
+    X_actual = data[:,2]
+    Y_actual = data[:,3]
+    Theta_actual = data[:,4]
+    Uset = data[:,1]
+
+    
+
+
+    # plot of XY target and actual
+    # sub plot of XYs over time
+    # sub plot of thetas over time
+    # sub plot of XY
+    plt.figure(1)
+    plt.subplot(411)
+    plt.plot(T,X_actual,'--',label ="X Actual",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title('X vs T')
+
+    plt.subplot(412)
+    plt.plot(T,Y_actual,'--',label ="Y Actual",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title('Y v T')
+
+    plt.subplot(413)
+    plt.plot(T,Theta_actual,'--',label =r"\theta Actual",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title(r'\theta v T')
+
+    plt.subplot(414)
+    plt.plot(T,Uset,'--',label =r"U ",linewidth=2)
+    plt.legend(bbox_to_anchor = (1.1,0.5), loc=7, borderaxespad=0.)
+    plt.title(r'\U v T')
+
+
+    plt.show()
 
 def main():
     plotCSVRun()
