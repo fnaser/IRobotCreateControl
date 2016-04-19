@@ -29,7 +29,7 @@ class TickTock():
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 10,ticktoc = None):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 1,ticktoc = None):
         Thread.__init__(self)
         self.speedup = speedup
         self.ticktock = ticktoc
@@ -135,37 +135,39 @@ class CreateController(Thread):
         print "closed"
 
 def main():
-    
-    channel = 'VICON_create8'
+    channel = 'VICON_sawbot'
     r_wheel = 125#mm
     dt = 1.0/5.0
-    r_circle = 400#mm
-    speed = 60 #64
+
+    r_circle = 300#mm
+    speed = 20 #64
 
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
     '''
-    #Q = np.eye(6)
-    dist = 30.0 #mm
-    ang = 1.0 # radians
-    #Q = Q*(1.0/(dist*dist))
-    #Q[2,2]= 1.0/(ang*ang)
-    speed_deviation = 5 #mm/s
-    angular_rate_deviation  = 20.0/125.0 # radians / seconds
-    Q = np.diag([1.0/(dist*dist),1.0/(dist*dist),1.0/(ang*ang),1/(speed_deviation*speed_deviation),1/(speed_deviation*speed_deviation),1.0/(angular_rate_deviation* angular_rate_deviation)])
-    
 
+    dist = 20.0 #mm
+    ang = 1.0 # radians
+
+    Q = np.diag([1.0/(dist*dist),
+                 1.0/(dist*dist),
+                 1.0/(ang*ang)])
 
 
     R = np.eye(2)
-    command_variation = 20.0
-    R = np.diag([1/( command_variation * command_variation ), 1/( command_variation * command_variation )] )
+    command_variation = 10.0
+    R = np.diag([1/( command_variation * command_variation ),
+                 1/( command_variation * command_variation )] )
+
+
 
     Xks = circle(r_circle,dt,speed)
-    #print Xks[0],"\n",Xks[1]
-    #print "\n"
     lock = Lock()
+
+    start = np.matrix(Xks[0][0:3]).transpose()
+
+    print start
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)

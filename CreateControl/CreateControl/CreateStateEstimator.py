@@ -3,7 +3,7 @@ from math import *
 from threading import Thread, Lock
 import time
 import numpy as np
-LCM=False
+LCM=True
 if LCM:
     import lcm
 #else:
