@@ -110,6 +110,7 @@ def main():
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
+    maxUc = 100;
 
 
     Xks = circle(r_circle,dt,speed)
@@ -124,9 +125,11 @@ def main():
     sh = StateHolder(lock,start)
     timelock = TickTock()
 
+
+
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,speedup,timelock)
-    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,speedup,timelock)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,maxUc,speedup,timelock)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,maxUc,speedup,timelock)
 
     VSim.start()
     #time.sleep(0.005)

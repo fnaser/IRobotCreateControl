@@ -7,6 +7,8 @@ import sys
 
 import csv
 
+from math import fabs
+
 class TickTock():
     def __init__(self):
         self.SimI=0
@@ -29,7 +31,7 @@ class TickTock():
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,speedup = 1,ticktoc = None):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,maxU=100,speedup = 1,ticktoc = None):
         Thread.__init__(self)
         self.speedup = speedup
         self.ticktock = ticktoc
@@ -41,6 +43,7 @@ class CreateController(Thread):
         self.offset = np.matrix([0,0,0]).transpose()
         self.Uos = TrajToUko(Xks,ro,dt)
         self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
+        self.maxU = maxU
         self.index = 0
         self.csvFile = open("Run.csv",'wb')
         self.writer = csv.writer(self.csvFile)
@@ -110,6 +113,11 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
+                for u in range(0,2):
+                    uv = Uc[u]
+                    if fabs(uv)>self.maxU:
+                        Uc[u] = self.maxU*uv/fabs(uv)
+                    print "|",uv,"| > ",self.maxU 
                 U = np.matrix(self.Uos[index]).transpose()-Uc
             # run it
 
