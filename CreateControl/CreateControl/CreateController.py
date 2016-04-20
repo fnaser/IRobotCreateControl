@@ -170,6 +170,10 @@ def main():
 
 
     Xks = circle(r_circle,dt,speed)
+    delay =  DelayModel(speed)
+    maxU = 15.0
+
+
     lock = Lock()
 
     start = np.matrix(Xks[0][0:3]).transpose()
@@ -178,23 +182,21 @@ def main():
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
-    #VT1 = ViconTester(sh,10)
-    #VT2 = ViconTester(sh,1)
-    #VTL = ViconLogger("test1.csv",sh,10)
+
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,delay,maxU)
 
 
     
     VI.start()
     time.sleep(0.05)
     CC.start()
-    #VTL.start()
 
     CC.join()
-    VI.join()
-#    VTL.join()
+    #VI.join()
+
     print "Done"
+    plotCSVRun()
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
