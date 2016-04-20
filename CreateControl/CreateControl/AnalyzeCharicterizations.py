@@ -34,6 +34,14 @@ def AnalyseFile(file = 'Run.csv'):
     plt.figure(1)
     plt.plot(analysis[:,0],analysis[:,1],'-')
     plt.title("cmd vs delay")
+    quicker = analysis[np.where(analysis[:,1]<1.2)]
+    Mslope, Mintercept, M_r_value, M_p_value, M_std_err = linregress(quicker[:,0],quicker[:,1])
+    print "Mslope: ", Mslope,"\tr:", M_r_value,"\t stdErr: ",M_std_err
+    print "Mintercept: ", Mintercept
+    MCalced = Mslope*analysis[:,0]+Mintercept
+    plt.plot(analysis[:,0],MCalced,'--')
+
+
 
     plt.figure(2)
     plt.plot(analysis[:,0],analysis[:,2],'-')
@@ -41,7 +49,7 @@ def AnalyseFile(file = 'Run.csv'):
     plt.title("cmd vs Actual speed")
 
     print "Uslope: ", Uslope,"\tr:", U_r_value,"\t stdErr: ",U_std_err
-
+    print "Uintercept", Uintercept
     plt.show()
 
 

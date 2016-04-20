@@ -100,3 +100,12 @@ def A(dt):
     #A = np.bmat([[Ia,Dt],[Za,Za]])
     return Ia
 
+
+
+def DelayModel(speed):
+    if speed < 17.5: return 2.0
+   
+    Mslope = -0.021
+    MIntercept = 1.377
+    delay = Mslope*speed+MIntercept
+    return delay

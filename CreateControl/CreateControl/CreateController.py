@@ -31,10 +31,11 @@ class TickTock():
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,maxU=100,speedup = 1,ticktoc = None):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,delay=0,maxU=100,speedup = 1,ticktoc = None):
         Thread.__init__(self)
         self.speedup = speedup
         self.ticktock = ticktoc
+        self.delay = delay
         self.CRC = CRC
         self.holder = stateholder
         self.dt = dt
@@ -70,9 +71,8 @@ class CreateController(Thread):
         return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0][0:3]).transpose())
 
     def run(self):
-        lastConf = np.mat([[0],[0],[0]])
-        lastT = 0
-        while True and self.index<len(self.Uos):
+        ndelay = int(self.delay/self.dt)
+        while True and self.index<( len(self.Uos)+ndelay):
 
             time.sleep(self.dt/self.speedup)
 
@@ -88,12 +88,7 @@ class CreateController(Thread):
                 # for first time step set offset and start movement
                 self.offset = X_m
                 print 'offset:',  self.offset
-                dt = self.dt
-            else:
-                print "t:", t, lastT
-                dt = (1.0*t-lastT)#*1e-6
-            
-            if not dt: dt = self.dt
+
 
             X_m = self.transform(X_m)
             
@@ -101,8 +96,11 @@ class CreateController(Thread):
             #look out for theta wrap around
 
 
-
-
+            if self.index>ndelay:
+                index = self.index-ndelay
+            else:
+                index = 0
+                
             Xk = np.matrix(self.Xks[index]).transpose()
             DX = X_m- Xk
             DX[2,0] = minAngleDif(X_m[2,0],self.Xks[index][2])
@@ -114,12 +112,13 @@ class CreateController(Thread):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
                 for u in range(0,2):
-                    uv = Uc[u]
+                    uv = Uc[u,0]
                     if fabs(uv)>self.maxU:
                         Uc[u] = self.maxU*uv/fabs(uv)
-                    print "|",uv,"| > ",self.maxU 
+                        print "|",uv,"| > ",self.maxU,"\n" 
                 U = np.matrix(self.Uos[index]).transpose()-Uc
-            # run it
+                # run it
+
 
             step = False
             if self.ticktock == None: step=True
@@ -132,7 +131,7 @@ class CreateController(Thread):
 
                 # add to log
                 row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
-                print "I:",index
+                print "I:",self.index
 
                 self.writer.writerow(row)
 

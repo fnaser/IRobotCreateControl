@@ -10,8 +10,9 @@ from plotRun import *
 
 
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10,timelock=None):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,delay=0,speedup = 10,timelock=None):
         Thread.__init__(self)
+        self.delay=delay
         self.CRC = CRC_sim
         self.holder = stateholder
         self.ro =ro
@@ -25,8 +26,9 @@ class CreateSimulator(Thread):
     
     def run(self):
         X_k = np.mat(np.zeros( (6,1) ) )
+        ndelay = int(self.delay/self.dt)
         print "start sim"
-        while True and self.index<len(self.Xks):
+        while True and self.index<( len(self.Xks)+ndelay):
             time.sleep(self.dt/self.speedup)
             U = self.CRC.LastU()
 
@@ -50,7 +52,7 @@ class CreateSimulator(Thread):
             #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
             X_k = X_k_p1
-            print "Sim:",self.index
+            #print "Sim:",self.index
             
             t = self.t0+self.dt*1000*self.index
 
@@ -89,7 +91,7 @@ def main():
     r_wheel = 125#mm
     dt = 1.0/5.0
 
-    r_circle = 400#mm
+    r_circle = 300#mm
     speed = 25 #64
 
 
@@ -97,7 +99,7 @@ def main():
     R should be 1/ speed deviation^2
     '''
 
-    dist = 20.0 #mm
+    dist = 30.0 #mm
     ang = 1.0 # radians
 
     Q = np.diag([1.0/(dist*dist),
@@ -110,10 +112,14 @@ def main():
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
-    maxUc = 100;
+    maxUc = 10;
 
 
     Xks = circle(r_circle,dt,speed)
+
+    delay = 0# DelayModel(speed)
+
+
     lock = Lock()
 
     start = np.matrix(Xks[0][0:3]).transpose()
@@ -128,8 +134,8 @@ def main():
 
 
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,maxUc,speedup,timelock)
-    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,maxUc,speedup,timelock)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,delay,maxUc,speedup,timelock)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,delay,speedup,timelock)
 
     VSim.start()
     #time.sleep(0.005)
