@@ -116,6 +116,8 @@ def main():
 
 
     Xks = circle(r_circle,dt,speed)
+    Xks = straight(1000,1.0/5.0,speed)
+
 
     delay = 0# DelayModel(speed)
 

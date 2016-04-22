@@ -25,11 +25,29 @@ def circle(r,dt,speed):
     return np.array(Xks)
 
 
+def straight(l,dt,speed):
+    dist_per_step = speed*dt
+    n = int(round(l/dist_per_step))
+    Xks = []
+    for i in range(0,n+1):
+        theta = pi/4
+        r = i*dist_per_step
+        x = r*cos(theta)
+        y = r*sin(theta)
+        Xk = [x,y,theta]
+        Xks.append(Xk)
+    return np.array(Xks)
+    
+
+
 def main():
     r=254.0 # 10 in 254cm 
-    dt=1.0
+    dt=1.0/5.0
     speed = 26.5988178 #mm / s
     xs = circle(r,dt,speed)
+
+    xs = straight(100,1.0/5.0,speed)
+
     fig,ax=pl.subplots()
     X = np.array(xs)
 
@@ -39,15 +57,19 @@ def main():
     plt.axis('equal')
 
 
-
+    
 
     r_wheel = 125
-    dt = 1.0/5.0
     UKs = TrajToUko(xs,r_wheel,dt)
-    plt.figure(2)
     U = np.array(UKs)
-    plt.plot(U[:,0])
-    plt.plot(U[:,1])
+    
+    T = np.linspace(0,X.size*dt,U[:,0].size)
+    plt.figure(2)
+    
+    plt.plot(T,U[:,0],'--')
+    plt.plot(T,U[:,1],'x')
+
+    print U
 
     plt.show()
     return 0
