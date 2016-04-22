@@ -111,6 +111,7 @@ class CreateController(Thread):
             if(self.index !=0):
                 # Make the new speed command
                 Uc = self.Ks[index].dot(DX)
+
                 for u in range(0,2):
                     uv = Uc[u,0]
                     if fabs(uv)>self.maxU:
