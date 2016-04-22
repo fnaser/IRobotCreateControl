@@ -49,11 +49,14 @@ def makeSuperQ(Q,T):
 def obj(Xbar,Xtraj,Qbar):
         DX = (Xbar.reshape((Xbar.size,1))-Xtraj)
         J = 0.5*DX.T.dot(Qbar).dot(DX)
-        return J 
+        j = float(J[0,0]) 
+        return j
 
 def jacobian(Xbar,Xtraj,Qbar):
     DX = (Xbar-Xtraj)
-    return DX.T.dot(Qbar)
+    jac = DX.T.dot(Qbar)
+    njac = np.squeeze(np.asarray(jac))
+    return njac
     
 def dynamicConstraint(Xbar,Xnow,dt,ro,T):
     G,V = MotorGainAndOffset()
@@ -70,31 +73,33 @@ def dynamicConstraint(Xbar,Xnow,dt,ro,T):
         Umod = G.dot(Ukm1)+V
         diff = Xk - Xkm1 - dt*B(Xkm1[2],ro).dot(Umod)
         C[3*i:3*i+3] = diff
-    return C
+    print C.size
+    return np.squeeze(np.asarray(C))
 
 def subBlock(Xbar,dt,ro,i):
-    x1 = Xbar[5*(i)+2:5*(i)+2+3]
-    U1 = Xbar[5*(i)+3+2:5*(i)+4+3]
+    U1 = Xbar[5*(i)       :5*(i)+2].reshape((2,1))
+    x1 = Xbar[5*(i)-3     :5*(i)].reshape((3,1))
+
     
 
     G,V = MotorGainAndOffset()
     Umod = G.dot(U1)+V
-    quack = dt*dbdtheta(x1(2)).dot(Umod)
+    quack = dt*dBdtheta(x1[2]).dot(Umod)
     crack = np.zeros((3,3))
-    crack[:,2] = quack
-    Bk = B(x1[2])
+    crack[:,2] = np.squeeze(quack)
+    Bk = B(x1[2],ro)
     
     dC1dx1 = -np.eye(3) - crack
     dC1du1 = -dt*Bk.dot(G)
     dC1dx2 = np.eye(3)
-    return np.bmat([dC1dx1,dC1du1,dC1dx2])
+    return np.squeeze(np.asarray(np.bmat([dC1dx1,dC1du1,dC1dx2])))
 
 def dynamicJacobian(Xbar,Xnow,dt,ro,T):
-    Cj = np.zereos((3*(T-1),5*T))
+    Cj = np.zeros((3*(T),5*T))
 
-    Bk = B(Xnow[2])
+    Bk = B(Xnow[2],ro)
     G,V = MotorGainAndOffset()
-    U1 = Xbar[0:3]
+    U1 = Xbar[0:2].reshape((2,1))
     Umod = G.dot(U1)+V
     dC1du1 = -dt*Bk.dot(G)
     dC1dx2 = np.eye(3)
@@ -104,7 +109,7 @@ def dynamicJacobian(Xbar,Xnow,dt,ro,T):
     for i in range(1,T):
         block = subBlock(Xbar,dt,ro,i)
         Cj[3*i:3*i+3,5*i-3:5*i+6] = block
-    return Cj
+    return np.squeeze(np.asarray(Cj))
 
 def bounds(T,umax):
     b = []
@@ -202,15 +207,16 @@ class CreateController(Thread):
 
             constrains = ({'type':'eq',
                'fun':lambda x: dynamicConstraint(x,X_m,self.dt,self.ro,self.T),
-               'jac': lambda x: jacobian(x,Xtraj,Qbar)})
+               'jac': lambda x: dynamicJacobian(x,X_m,self.dt,self.ro,self.T)})
 
 
             #Xguess
             targetobj = lambda x: obj(x,Xtraj,Qbar)
+            targetjac = lambda x: jacobian(x,Xtraj,Qbar)
             XStar = minimize(targetobj,Xtraj,method='SLSQP',
-                                bounds = self.bounds,
+                                #bounds = self.bounds,
                                 constraints = constrains,
-                                jac = jacobian)
+                                jac = targetjac)
             U = XStar[0:3]
 
 
