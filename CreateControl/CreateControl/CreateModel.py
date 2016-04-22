@@ -43,9 +43,16 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
     thetadot = d_theta/dt
     
-    g = 1.25565# 1/ 0.7964
-    Uk = [(V-ro*thetadot)*g,(V+ro*thetadot)*g]
-    return np.array(Uk) 
+    #Uk = [(V-ro*thetadot),(V+ro*thetadot)]
+    #Uk = np.array(Uk) 
+
+    Uk = np.array([[(V+ro*thetadot)],
+                   [(V-ro*thetadot)]])
+    G,Mo = MotorGainAndOffset()
+    GI = np.linalg.inv(G)
+    Uc = GI.dot(Uk-Mo)
+
+    return  Uc.transpose()
 
 
 def TrajToUko(Xks,ro,dt):
@@ -88,8 +95,8 @@ def B(th,r0):
     '''returns the B matrix
        this expects a 1d array for X
     '''
-    g = 0.7964
-    B = g*np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
+    #g = 0.7964
+    B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
     return B
 
 
@@ -109,3 +116,9 @@ def DelayModel(speed):
     MIntercept = 1.377
     delay = Mslope*speed+MIntercept
     return delay
+
+
+def MotorGainAndOffset():
+    G = np.diag([0.855,0.7337])
+    V = np.mat([[-1.8889],[-0.6113]])
+    return G,V

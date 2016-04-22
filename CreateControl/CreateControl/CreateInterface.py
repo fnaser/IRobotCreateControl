@@ -116,7 +116,7 @@ class CreateRobotCmd(object):
         V1 = minMax(self.vmin,self.vmax,V1)
         V2 = minMax(self.vmin,self.vmax,V2)
 
-        cmd = self._makecmd(int(self.drivemode),int(V1),int(V2))
+        cmd = self._makecmd(int(self.drivemode),int(V2),int(V1))
         self._writeCommand(cmd)
 
 

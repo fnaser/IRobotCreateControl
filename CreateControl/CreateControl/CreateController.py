@@ -117,7 +117,7 @@ class CreateController(Thread):
                     if fabs(uv)>self.maxU:
                         Uc[u] = self.maxU*uv/fabs(uv)
                         print "|",uv,"| > ",self.maxU,"\n" 
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
                 # run it
 
 
@@ -128,7 +128,7 @@ class CreateController(Thread):
                 self.ticktock.setConI(self.index+1)
 
             if step:
-                self.CRC.directDrive(U[1,0],U[0,0])
+                self.CRC.directDrive(U[0,0],U[1,0])
 
                 # add to log
                 row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]

@@ -30,7 +30,17 @@ class CreateSimulator(Thread):
         print "start sim"
         while True and self.index<( len(self.Xks)+ndelay):
             time.sleep(self.dt/self.speedup)
-            U = self.CRC.LastU()
+            Uc = self.CRC.LastU()
+
+            G,V = MotorGainAndOffset()
+            U = G.dot(Uc)+V
+
+            
+            for i in range(0,2):
+                if U[i]<10:
+                    U[i]=0
+
+            
 
             X_k  = self.holder.GetConfig()
 
@@ -116,7 +126,7 @@ def main():
 
 
     Xks = circle(r_circle,dt,speed)
-    Xks = straight(1000,1.0/5.0,speed)
+    #Xks = straight(1000,1.0/5.0,speed)
 
 
     delay = 0# DelayModel(speed)
