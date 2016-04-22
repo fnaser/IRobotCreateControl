@@ -79,8 +79,11 @@ def TVLQR(xtraj, utraj, dt, r0, Q, R):
     S = np.matrix(Q)
     Q = np.matrix(Q)
     R = np.matrix(R)
+    G,V = MotorGainAndOffset()
+    #GI = np.linalg.inv(G)
+
     for k in range(len(xtraj)-1,-1,-1):
-        Bk = B(xtraj[k][0],r0)
+        Bk = B(xtraj[k][0],r0).dot(G)
         K = -(R + Bk.T*S*Bk).I*Bk.T*S #-(R + Bk.T*S*Bk).I*Bk.T*S
         S = Q + K.T*R*K + (np.matrix(np.identity(3)) + Bk*K).T*S*(np.matrix(np.identity(3)) + Bk*K)
         Ktraj.append(K)

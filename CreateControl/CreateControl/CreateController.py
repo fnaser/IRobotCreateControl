@@ -117,7 +117,7 @@ class CreateController(Thread):
                     if fabs(uv)>self.maxU:
                         Uc[u] = self.maxU*uv/fabs(uv)
                         print "|",uv,"| > ",self.maxU,"\n" 
-                U = np.matrix(self.Uos[index]).transpose()#-Uc
+                U = np.matrix(self.Uos[index]).transpose()-Uc
                 # run it
 
 

@@ -45,7 +45,7 @@ class CreateSimulator(Thread):
             X_k  = self.holder.GetConfig()
 
             #if (self.index==0): Conf[0,0]+=20.0
-            n = [0.1,0.1,2*pi/360/4]
+            n = [0.1,0.1,2*pi/360/40]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
             #print W
 
