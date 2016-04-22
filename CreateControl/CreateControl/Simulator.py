@@ -57,7 +57,7 @@ class CreateSimulator(Thread):
 
 
             #    B returns a 3x1 but X_k is 3x1
-            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) +W
+            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) #+W
             #print A(self.dt)
             #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
@@ -144,9 +144,10 @@ def main():
     timelock = TickTock()
 
 
+    T = 2
 
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,delay,maxUc,speedup,timelock)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxUc,speedup,timelock)
     VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,delay,speedup,timelock)
 
     VSim.start()
