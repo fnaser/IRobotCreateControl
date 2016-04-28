@@ -45,7 +45,7 @@ class CreateSimulator(Thread):
             X_k  = self.holder.GetConfig()
 
             #if (self.index==0): Conf[0,0]+=20.0
-            n = [0.1,0.1,2*pi/360/40]
+            n = [0.1,0.1,2*pi/360/4]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
             #print W
 
@@ -57,7 +57,7 @@ class CreateSimulator(Thread):
 
 
             #    B returns a 3x1 but X_k is 3x1
-            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) #+W
+            X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) +W
             #print A(self.dt)
             #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
@@ -109,7 +109,7 @@ def main():
     R should be 1/ speed deviation^2
     '''
 
-    dist = 30.0 #mm
+    dist = 10.0 #mm
     ang = 1.0 # radians
 
     Q = np.diag([1.0/(dist*dist),
@@ -122,7 +122,7 @@ def main():
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
-    maxUc = 10;
+    maxUc = 20;
 
 
     Xks = circle(r_circle,dt,speed)
@@ -144,7 +144,7 @@ def main():
     timelock = TickTock()
 
 
-    T = 2
+    T = 5
 
     CRC =CRC_Sim()
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxUc,speedup,timelock)
@@ -155,7 +155,7 @@ def main():
     CC.start()
 
     CC.join()
-    VSim.join()
+    #VSim.join()
     print 'Done'
     time.sleep(0.05)
     plotCSVRun()
