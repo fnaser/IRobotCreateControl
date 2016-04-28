@@ -188,15 +188,16 @@ class CreateController(Thread):
     def run(self):
         ndelay = int(self.delay/self.dt)
         Qbar = makeSuperQ(self.Q,self.T)
-        while True and self.index<( len(self.Uos)+ndelay-self.T):
+        while True and self.index<( len(self.Uos)+ndelay):
 
             time.sleep(self.dt/self.speedup)
 
+            T = min( (len(self.Uos) - self.index),
+                      self.T)
+            
 
 
-
-
-            # get the current State
+            # the current State
             X_m = self.holder.GetConfig()
             t = self.holder.getTime()
 
@@ -210,12 +211,12 @@ class CreateController(Thread):
 
 
             X_m = self.transform(X_m)
-            Xtraj = xtrajMaker(self.Xks,self.Uos,self.T,index)
-            
+            Xtraj = xtrajMaker(self.Xks,self.Uos,T,index)
+            if (T!= self.T): Qbar = makeSuperQ(self.Q,T)            
 
             constrains = ({'type':'eq',
-               'fun':lambda x: dynamicConstraint(x,X_m,self.dt,self.ro,self.T),
-               'jac': lambda x: dynamicJacobian(x,X_m,self.dt,self.ro,self.T)})
+               'fun':lambda x: dynamicConstraint(x,X_m,self.dt,self.ro,T),
+               'jac': lambda x: dynamicJacobian(x,X_m,self.dt,self.ro,T)})
 
 
             #Xguess
