@@ -37,6 +37,11 @@ def dBdtheta(th):
     return B
 
 
+def diffXs(Xbar,Xtraj):
+    DX = (Xbar.reshape((Xbar.size,1))-Xtraj)
+    for i in range(4,Xbar.size,5):
+        DX[i] = minAngleDif(Xbar[i],Xtraj[i])
+    return DX
 
 def makeSuperQ(Q,T):
     diag=[]
@@ -47,13 +52,14 @@ def makeSuperQ(Q,T):
     return qbar
 
 def obj(Xbar,Xtraj,Qbar):
-        DX = (Xbar.reshape((Xbar.size,1))-Xtraj)
+        DX = diffXs(Xbar,Xtraj)
+        #DX = (Xbar.reshape((Xbar.size,1))-Xtraj)
         J = 0.5*DX.T.dot(Qbar).dot(DX)
         j = float(J[0,0]) 
         return j
 
 def jacobian(Xbar,Xtraj,Qbar):
-    DX = (Xbar-Xtraj)
+    DX = diffXs(Xbar,Xtraj)
     jac = DX.T.dot(Qbar)
     njac = np.squeeze(np.asarray(jac))
     return njac
@@ -73,8 +79,8 @@ def dynamicConstraint(Xbar,Xnow,dt,ro,T):
         Umod = G.dot(Ukm1)+V
         diff = Xk - Xkm1 - dt*B(Xkm1[2],ro).dot(Umod)
         C[3*i:3*i+3] = diff
-    print C.size
-    return np.squeeze(np.asarray(C))
+    Cturned = np.squeeze(np.asarray(C))
+    return Cturned
 
 def subBlock(Xbar,dt,ro,i):
     U1 = Xbar[5*(i)       :5*(i)+2].reshape((2,1))
@@ -92,7 +98,7 @@ def subBlock(Xbar,dt,ro,i):
     dC1dx1 = -np.eye(3) - crack
     dC1du1 = -dt*Bk.dot(G)
     dC1dx2 = np.eye(3)
-    return np.squeeze(np.asarray(np.bmat([dC1dx1,dC1du1,dC1dx2])))
+    return np.asarray(np.bmat([dC1dx1,dC1du1,dC1dx2]))
 
 def dynamicJacobian(Xbar,Xnow,dt,ro,T):
     Cj = np.zeros((3*(T),5*T))
@@ -109,7 +115,9 @@ def dynamicJacobian(Xbar,Xnow,dt,ro,T):
     for i in range(1,T):
         block = subBlock(Xbar,dt,ro,i)
         Cj[3*i:3*i+3,5*i-3:5*i+6] = block
-    return np.squeeze(np.asarray(Cj))
+
+    djacobian = np.squeeze(np.asarray(Cj))
+    return djacobian
 
 def bounds(T,umax):
     b = []
@@ -180,7 +188,7 @@ class CreateController(Thread):
     def run(self):
         ndelay = int(self.delay/self.dt)
         Qbar = makeSuperQ(self.Q,self.T)
-        while True and self.index<( len(self.Uos)+ndelay):
+        while True and self.index<( len(self.Uos)+ndelay-self.T):
 
             time.sleep(self.dt/self.speedup)
 
@@ -213,11 +221,11 @@ class CreateController(Thread):
             #Xguess
             targetobj = lambda x: obj(x,Xtraj,Qbar)
             targetjac = lambda x: jacobian(x,Xtraj,Qbar)
-            XStar = minimize(targetobj,Xtraj,method='SLSQP',
+            XStar = minimize(targetobj,np.squeeze(np.asarray(Xtraj)),method='SLSQP',
                                 #bounds = self.bounds,
-                                constraints = constrains,
-                                jac = targetjac)
-            U = XStar[0:3]
+                                constraints = constrains)#,
+                                #jac = targetjac)
+            U = XStar.x[0:2]
 
 
             #look out for theta wrap around
@@ -241,10 +249,10 @@ class CreateController(Thread):
                 self.ticktock.setConI(self.index+1)
 
             if step:
-                self.CRC.directDrive(U[0,0],U[1,0])
+                self.CRC.directDrive(U[0],U[1])
 
                 # add to log
-                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0,0],U[1,0]]+[Uc[0,0],Uc[1,0]]
+                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0],U[1]]+[Uc[0,0],Uc[1,0]]
                 print "I:",self.index
 
                 self.writer.writerow(row)
