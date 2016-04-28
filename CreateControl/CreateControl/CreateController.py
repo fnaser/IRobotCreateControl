@@ -114,19 +114,19 @@ def dynamicJacobian(Xbar,Xnow,dt,ro,T):
 
     for i in range(1,T):
         block = subBlock(Xbar,dt,ro,i)
-        Cj[3*i:3*i+3,5*i-3:5*i+6] = block
+        Cj[3*i:3*i+3,5*i-3:5*i+5] = block
 
     djacobian = np.squeeze(np.asarray(Cj))
     return djacobian
 
-def bounds(T,umax):
+def bounds(T,Uos,Umaxs):
     b = []
     for i in range(0,T):
         b.append((None,None))
         b.append((None,None))
         b.append((None,None))
-        b.append((-umax,umax))
-        b.append((-umax,umax))
+        b.append((Uos[i,0]-Umax[0],Uos[i,0]+Umax[0]))
+        b.append((Uos[i,1]-Umax[1],Uos[i,1]+Umax[1]))
     return b
 
 
@@ -149,7 +149,7 @@ class CreateController(Thread):
         self.T  =T
         self.Q = Q
         self.ro = ro
-        self.bounds = bounds(T,50)
+        #self.bounds = bounds(T,50)
         self.CRC.start()
         self.Xks = Xks
         self.offset = np.matrix([0,0,0]).transpose()
@@ -239,7 +239,13 @@ class CreateController(Thread):
             Xk = np.matrix(self.Xks[index]).transpose()
             DX = X_m- Xk
             DX[2,0] = minAngleDif(X_m[2,0],self.Xks[index][2])
-            Uc = np.array(self.Uos[self.index]).transpose()
+            Uc = np.squeeze(np.array(self.Uos[self.index]).transpose())
+
+            Udif = U-Uc
+            for i in range(0,2):
+                if fabs(Udif[i])>self.maxU:
+                    U[i] = self.maxU*Udif[i]/fabs(Udif[i])+Uc[i]
+
 
 
             step = False
@@ -252,7 +258,7 @@ class CreateController(Thread):
                 self.CRC.directDrive(U[0],U[1])
 
                 # add to log
-                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0],U[1]]+[Uc[0,0],Uc[1,0]]
+                row = [t]+[Xk[0,0], Xk[1,0],  Xk[2,0] ]+[X_m[0,0], X_m[1,0],  X_m[2,0] ]+[DX[2,0]]+[U[0],U[1]]+[Uc[0],Uc[1]]
                 print "I:",self.index
 
                 self.writer.writerow(row)
