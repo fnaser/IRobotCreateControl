@@ -8,6 +8,7 @@ import sys
 import csv
 
 from math import fabs
+from plotRun import *
 
 class TickTock():
     def __init__(self):
@@ -72,6 +73,7 @@ class CreateController(Thread):
 
     def run(self):
         ndelay = int(self.delay/self.dt)
+
         while True and self.index<( len(self.Uos)+ndelay):
 
             time.sleep(self.dt/self.speedup)
@@ -81,8 +83,6 @@ class CreateController(Thread):
             X_m = self.holder.GetConfig()
             t = self.holder.getTime()
 
-            #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
-            #X = np.matrix([s[0],s[1],s[2]])
             index = self.index
             if(self.index ==0):
                 # for first time step set offset and start movement
@@ -100,6 +100,7 @@ class CreateController(Thread):
                 index = self.index-ndelay
             else:
                 index = 0
+                print "delay: "
                 
             Xk = np.matrix(self.Xks[index]).transpose()
             DX = X_m- Xk
@@ -117,7 +118,8 @@ class CreateController(Thread):
                     if fabs(uv)>self.maxU:
                         Uc[u] = self.maxU*uv/fabs(uv)
                         print "|",uv,"| > ",self.maxU,"\n" 
-                U = np.matrix(self.Uos[index]).transpose()-Uc
+                U = np.matrix(self.Uos[index]).transpose()#-Uc
+                U = np.diag([0.95,0.95]).dot(U)
                 # run it
 
 
@@ -148,7 +150,7 @@ def main():
     dt = 1.0/5.0
 
     r_circle = 300#mm
-    speed = 20 #64
+    speed = 25 #64
 
 
     '''Q should be 1/distance deviation ^2
@@ -172,7 +174,8 @@ def main():
 
     Xks = circle(r_circle,dt,speed)
     delay =  DelayModel(speed)
-    maxU = 15.0
+    print "delay: ", delay
+    maxU = 10.0
 
 
     lock = Lock()
