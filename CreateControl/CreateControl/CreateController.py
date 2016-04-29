@@ -146,7 +146,7 @@ def xGuess(Xguess,Xstar,ro,dt,T):
         Xguess[-5:-3] = ulast.reshape((2,1))
         Xguess[-3:] = xnew.T
     else:
-        Xguess = Xstar[5:5*T]
+        Xguess = Xstar[5:5*T+5]
     return Xguess
 
 
@@ -281,7 +281,7 @@ class CreateController(Thread):
             print time_taken
             waittime = self.dt-time_taken
             waittime = max(waittime,0)
-            time.sleep(waittime)
+            #time.sleep(waittime)
 
             if step:
                 self.CRC.directDrive(U[0],U[1])
