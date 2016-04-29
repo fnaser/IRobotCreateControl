@@ -244,8 +244,8 @@ class CreateController(Thread):
             XStar = minimize(targetobj,np.squeeze(np.asarray(Xguess)),method='SLSQP',
                                 options = {'maxiter':10},
                                 #bounds = self.bounds,
-                                constraints = constrains)#,
-                                #jac = targetjac)
+                                constraints = constrains,#)#,
+                                jac = targetjac)
             U = XStar.x[0:2]
 
             
