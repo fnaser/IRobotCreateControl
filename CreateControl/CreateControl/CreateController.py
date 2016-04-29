@@ -137,6 +137,19 @@ def xtrajMaker(Xks,Uks,T,index):
         xtraj[2+5*i:5+5*i] = Xks[index+1+i].reshape((3,1))#.transpose()
     return xtraj
 
+def xGuess(Xguess,Xstar,ro,dt,T):
+    if T >= Xstar.size/5.0:
+        Xguess[0:-5] = Xstar[5:].reshape((Xstar.size-5,1))
+        ulast = Xstar[-5:-3]
+        xlast = Xstar[-3:]
+        xnew = xlast+dt*B(xlast[2],ro).dot(ulast)
+        Xguess[-5:-3] = ulast.reshape((2,1))
+        Xguess[-3:] = xnew.T
+    else:
+        Xguess = Xstar[5:5*T]
+    return Xguess
+
+
 class CreateController(Thread):
     def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,T,delay=0,maxU=100,speedup = 1,ticktoc = None):
         Thread.__init__(self)
@@ -189,6 +202,7 @@ class CreateController(Thread):
         ndelay = int(self.delay/self.dt)
         Qbar = makeSuperQ(self.Q,self.T)
         waittime = 0 # self.dt/self.speedup
+        Xguess = xtrajMaker(self.Xks,self.Uos,self.T,self.index)
         while True and self.index<( len(self.Uos)+ndelay):
 
             
@@ -218,17 +232,22 @@ class CreateController(Thread):
             constrains = ({'type':'eq',
                'fun':lambda x: dynamicConstraint(x,X_m,self.dt,self.ro,T),
                'jac': lambda x: dynamicJacobian(x,X_m,self.dt,self.ro,T)})
+            
 
+            if self.index !=0:
+                Xguess = xGuess(Xguess,XStar.x,self.ro,self.dt,T)
+            
 
             #Xguess
             targetobj = lambda x: obj(x,Xtraj,Qbar)
             targetjac = lambda x: jacobian(x,Xtraj,Qbar)
-            XStar = minimize(targetobj,np.squeeze(np.asarray(Xtraj)),method='SLSQP',
+            XStar = minimize(targetobj,np.squeeze(np.asarray(Xguess)),method='SLSQP',
                                 #bounds = self.bounds,
                                 constraints = constrains)#,
                                 #jac = targetjac)
             U = XStar.x[0:2]
 
+            
 
             #look out for theta wrap around
 
