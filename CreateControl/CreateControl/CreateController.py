@@ -188,14 +188,15 @@ class CreateController(Thread):
     def run(self):
         ndelay = int(self.delay/self.dt)
         Qbar = makeSuperQ(self.Q,self.T)
+        waittime = 0 # self.dt/self.speedup
         while True and self.index<( len(self.Uos)+ndelay):
 
-            time.sleep(self.dt/self.speedup)
+            
 
             T = min( (len(self.Uos) - self.index),
                       self.T)
-            
-
+           
+            tic = time.time()
 
             # the current State
             X_m = self.holder.GetConfig()
@@ -255,6 +256,13 @@ class CreateController(Thread):
                 step = True
                 self.ticktock.setConI(self.index+1)
 
+            toc = time.time()
+            time_taken = toc-tic
+            print time_taken
+            waittime = self.dt-time_taken
+            waittime = max(waittime,0)
+            time.sleep(waittime)
+
             if step:
                 self.CRC.directDrive(U[0],U[1])
 
@@ -265,6 +273,9 @@ class CreateController(Thread):
                 self.writer.writerow(row)
 
                 self.index +=1
+            
+            
+            
 
         self.CRC.stop()
         self.csvFile.close()
@@ -311,9 +322,9 @@ def main():
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
-
-    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,delay,maxU)
+    T = 5
+    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU)
 
 
     

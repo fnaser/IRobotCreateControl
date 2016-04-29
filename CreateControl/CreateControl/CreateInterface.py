@@ -116,12 +116,12 @@ class CreateRobotCmd(object):
         V1 = minMax(self.vmin,self.vmax,V1)
         V2 = minMax(self.vmin,self.vmax,V2)
 
-        cmd = self._makecmd(int(self.drivemode),int(V2),int(V1))
+        cmd = self._makecmd(int(self.drivemode),int(V1),int(V2))
         self._writeCommand(cmd)
 
 
 def main():
-    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
         print "starting"
