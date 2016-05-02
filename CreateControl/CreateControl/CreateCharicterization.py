@@ -7,7 +7,7 @@ import sys
 
 import csv
 
-from plotRun import plotCSVRun
+from plotRun import plotCSVRun, plotCharicterizationRun
 
 
 class CreateCharicterizer(Thread):
@@ -80,9 +80,11 @@ class CreateCharicterizer(Thread):
 
 def main():
     
-    channel = 'VICON_sawbot'#'VICON_create8'
-    s = 60
-    speeds = [10,0,20,0,30,0]
+
+    channel = 'VICON_sawbot'
+    s = 30
+    speeds = [s,0,s+2.5,0,s+5,0,s+7.5,0,s+10,0]
+    
     time_step = 5 #s
 
 
@@ -106,7 +108,7 @@ def main():
     #VI.join()
 #    VTL.join()
     print "Done"
-    plotCSVRun()
+    plotCharicterizationRun()
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
