@@ -10,6 +10,7 @@ import sys
 import csv
 
 from math import fabs
+from plotRun import *
 
 class TickTock():
     def __init__(self):
@@ -281,7 +282,7 @@ class CreateController(Thread):
             print time_taken
             waittime = self.dt-time_taken
             waittime = max(waittime,0)
-            #time.sleep(waittime)
+            time.sleep(waittime)
 
             if step:
                 self.CRC.directDrive(U[0],U[1])
@@ -343,7 +344,7 @@ def main():
 
     VI = ViconInterface(channel,sh)
     T = 5
-    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU)
 
 

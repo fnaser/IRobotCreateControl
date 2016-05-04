@@ -121,7 +121,7 @@ class CreateRobotCmd(object):
 
 
 def main():
-    CRC = CreateRobotCmd('/dev/ttyUSB1',Create_OpMode.Full,Create_DriveMode.Direct)
+    CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     print CRC.port.isOpen()
     if CRC.port.isOpen() or DEBUG:
         print "starting"
