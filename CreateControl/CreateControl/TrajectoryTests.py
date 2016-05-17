@@ -40,6 +40,10 @@ def straight(l,dt,speed):
     
 
 
+def loadTraj(file):
+    return np.load(file)
+
+
 def main():
     r=254.0 # 10 in 254cm 
     dt=1.0/5.0
@@ -47,6 +51,8 @@ def main():
     xs = circle(r,dt,speed)
 
     xs = straight(100,1.0/5.0,speed)
+
+    xs = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
 
     fig,ax=pl.subplots()
     X = np.array(xs)
@@ -61,15 +67,18 @@ def main():
 
     r_wheel = 125
     UKs = TrajToUko(xs,r_wheel,dt)
-    U = np.array(UKs)
+    U = np.vstack(UKs)
     
-    T = np.linspace(0,X.size*dt,U[:,0].size)
+    T = np.linspace(0,X.shape[0]*dt,U.shape[0])
     plt.figure(2)
-    
-    plt.plot(T,U[:,0],'--')
-    plt.plot(T,U[:,1],'x')
-
-    print U
+    plt.subplot(211)
+    plt.plot(T,U[:,0],'bo-')
+    plt.plot(T,U[:,1],'gx-')
+    plt.subplot(212)
+    T = np.linspace(0,X.shape[0]*dt,X.shape[0])
+    plt.plot(T,X[:,0],'go-')
+    plt.plot(T,X[:,1],'bx-')
+    #print U
 
     plt.show()
     return 0

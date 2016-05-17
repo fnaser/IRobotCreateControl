@@ -40,7 +40,7 @@ def minAngleDif(x,y):
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
-    d_theta = atan2(sin(Xkp1[2]-Xk[2]), cos(Xkp1[2]-Xk[2]))
+    d_theta = minAngleDif(Xkp1[2],Xk[2])
     thetadot = d_theta/dt
     
     #Uk = [(V-ro*thetadot),(V+ro*thetadot)]

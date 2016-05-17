@@ -101,9 +101,6 @@ def main():
     r_wheel = 125#mm
     dt = 1.0/5.0
 
-    r_circle = 300#mm
-    speed = 25 #64
-
 
     '''Q should be 1/distance deviation ^2
     R should be 1/ speed deviation^2
@@ -124,10 +121,11 @@ def main():
 
     maxUc = 20;
 
-
-    Xks = circle(r_circle,dt,speed)
+    r_circle = 300#mm
+    speed = 25 #64
+    #Xks = circle(r_circle,dt,speed)
     #Xks = straight(1000,1.0/5.0,speed)
-
+    Xks = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
 
     delay = 0# DelayModel(speed)
 
@@ -144,7 +142,7 @@ def main():
     timelock = TickTock()
 
 
-    T = 5
+    T = 5 #horizon
 
     CRC =CRC_Sim()
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxUc,speedup,timelock)
