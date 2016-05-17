@@ -38,16 +38,22 @@ def minAngleDif(x,y):
      return a
 
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
-    V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
+    #V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
-    d_theta = minAngleDif(Xkp1[2],Xk[2])
-    thetadot = d_theta/dt
+    #d_theta = minAngleDif(Xkp1[2],Xk[2])
+    #thetadot = d_theta/dt
     
+    DX = Xkp1-Xk
+    DX[2] = minAngleDif(Xkp1[2],Xk[2])
+    Binv = 1.0/dt*PseudoBInv(Xk[2],ro)
+
     #Uk = [(V-ro*thetadot),(V+ro*thetadot)]
     #Uk = np.array(Uk) 
 
-    Uk = np.array([[(V+ro*thetadot)],
-                   [(V-ro*thetadot)]])
+    #Uk = np.array([[(V+ro*thetadot)],
+    #               [(V-ro*thetadot)]])
+    
+    Uk = Binv.dot(DX)
     G,Mo = MotorGainAndOffset()
     GI = np.linalg.inv(G)
     Uc = GI.dot(Uk-Mo)
@@ -102,7 +108,10 @@ def B(th,r0):
     B = np.matrix([[.5*cos(th), .5*cos(th)],[.5*sin(th), .5*sin(th)],[1.0/(2.0*r0), -1.0/(2.0*r0)]])
     return B
 
-
+def PseudoBInv(th,ro):
+    Binv = np.matrix([[cos(th), sin(th),ro],[cos(th), sin(th),-ro]])
+    return Binv
+    
 def A(dt):
     Ia = np.mat(np.eye(3))
     #Dt = dt*Ia
