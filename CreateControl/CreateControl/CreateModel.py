@@ -56,7 +56,7 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     Uk = Binv.dot(DX)
     G,Mo = MotorGainAndOffset()
     GI = np.linalg.inv(G)
-    Uc = GI.dot(Uk-Mo)
+    Uc = GI.dot(Uk.transpose()-Mo)
 
     return  Uc.transpose()
 

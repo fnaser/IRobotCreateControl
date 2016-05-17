@@ -10,7 +10,7 @@ from plotRun import *
 
 
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,delay=0,speedup = 10,timelock=None):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,delay=0,speedup = 10,timelock=None,NoNoise=False):
         Thread.__init__(self)
         self.delay=delay
         self.CRC = CRC_sim
@@ -23,6 +23,7 @@ class CreateSimulator(Thread):
         self.index = 0
         self.speedup=speedup
         self.ticktock = timelock
+        self.no_noise = NoNoise
     
     def run(self):
         X_k = np.mat(np.zeros( (6,1) ) )
@@ -37,7 +38,7 @@ class CreateSimulator(Thread):
 
             
             for i in range(0,2):
-                if U[i]<10:
+                if fabs(U[i])<10:
                     U[i]=0
 
             
@@ -47,6 +48,7 @@ class CreateSimulator(Thread):
             #if (self.index==0): Conf[0,0]+=20.0
             n = [0.1,0.1,2*pi/360/4]
             W = np.matrix([np.random.normal(0,n[i],1) for i in range(0,3)] )
+
             #print W
 
             K1 = B(X_k[2,0],self.ro).dot(U)
@@ -58,6 +60,8 @@ class CreateSimulator(Thread):
 
             #    B returns a 3x1 but X_k is 3x1
             X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4) +W
+            if self.no_noise:
+                X_k_p1 = A(self.dt).dot(X_k) + self.dt/6*(K1+2*K2+2*K3+K4)
             #print A(self.dt)
             #print X_k_p1[0:3]
             X_k_p1[2,0] = X_k_p1[2,0]%(2.0*pi)
@@ -106,8 +110,8 @@ def main():
     R should be 1/ speed deviation^2
     '''
 
-    dist = 10.0 #mm
-    ang = 1.0 # radians
+    dist = 20.0 #mm
+    ang = 0.25 # radians
 
     Q = np.diag([1.0/(dist*dist),
                  1.0/(dist*dist),
@@ -115,7 +119,7 @@ def main():
 
 
     R = np.eye(2)
-    command_variation = 10.0
+    command_variation = 20.0
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
@@ -126,7 +130,7 @@ def main():
     #Xks = circle(r_circle,dt,speed)
     #Xks = straight(1000,1.0/5.0,speed)
     Xks = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
-
+    #Xks = Xks[:50]
     delay = 0# DelayModel(speed)
 
 

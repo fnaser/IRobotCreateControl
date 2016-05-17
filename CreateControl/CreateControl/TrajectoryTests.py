@@ -38,13 +38,16 @@ def straight(l,dt,speed):
         Xks.append(Xk)
     return np.array(Xks)
     
-
+def forandBack(l,dt,speed):
+    forward = straight(l,dt,speed)
+    back = forward[:0:-1]
+    return np.vstack((forward,back))
 
 def loadTraj(file):
     return np.load(file)
 
 
-def plotUandX(xs,UKs):
+def plotUandX(xs,UKs,dt):
     fig,ax=pl.subplots()
     X = np.array(xs)
 
@@ -100,18 +103,19 @@ def main():
     r=254.0 # 10 in 254cm 
     dt=1.0/5.0
     speed = 26.5988178 #mm / s
-    xs = circle(r,dt,speed)
+    #xs = circle(r,dt,speed)
 
-    xs = straight(100,1.0/5.0,speed)
+    #xs = straight(100,1.0/5.0,speed)
 
     xs = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
-
-
+    xs = forandBack(100,dt,speed)
+    plotTraj(xs)
+    
     r_wheel = 125
     UKs = TrajToUko(xs,r_wheel,dt)
 
-    #plotUandX(xs,UKs)
-    plotTraj(xs)
+    plotUandX(xs,UKs,dt)
+    
     return 0
 
 

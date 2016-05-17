@@ -152,8 +152,9 @@ def xGuess(Xguess,Xstar,ro,dt,T):
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,T,delay=0,maxU=100,speedup = 1,ticktoc = None):
+    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,T,delay=0,maxU=100,speedup = 1,ticktoc = None, NoControl=False):
         Thread.__init__(self)
+        self.nocontrol = NoControl
         self.speedup = speedup
         self.ticktock = ticktoc
         self.delay = delay
@@ -270,6 +271,7 @@ class CreateController(Thread):
                     U[i] = self.maxU*Udif[i]/fabs(Udif[i])+Uc[i]
 
 
+            if self.nocontrol: U=Uc
 
             step = False
             if self.ticktock == None: step=True
@@ -282,7 +284,7 @@ class CreateController(Thread):
             print time_taken
             waittime = self.dt-time_taken
             waittime = max(waittime,0)
-            time.sleep(waittime)
+            time.sleep(waittime/self.speedup)
 
             if step:
                 self.CRC.directDrive(U[0],U[1])
