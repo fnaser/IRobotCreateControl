@@ -307,7 +307,7 @@ def main():
     r_wheel = 125#mm
     dt = 1.0/5.0
 
-    r_circle = 300#mm
+    r_circle = 275#mm
     speed = 20 #64
 
 
@@ -355,7 +355,7 @@ def main():
 
     CC.join()
     #VI.join()
-
+    CRC.stop()
     print "Done"
     plotCSVRun()
 
