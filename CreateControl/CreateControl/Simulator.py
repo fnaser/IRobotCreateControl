@@ -127,7 +127,7 @@ def main():
     speed = 25 #64
     #Xks = circle(r_circle,dt,speed)
     #Xks = straight(1000,1.0/5.0,speed)
-    Xks = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
+    Xks = loadTraj('../Media/card2-dist5.20-rcut130.00-trajs-0.npy')
     Xks,Uks = TrajToUko(Xks,r_wheel,dt)
     #Xks = Xks[:50]
 
