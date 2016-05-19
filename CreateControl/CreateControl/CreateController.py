@@ -152,29 +152,29 @@ def xGuess(Xguess,Xstar,ro,dt,T):
 
 
 class CreateController(Thread):
-    def __init__(self,CRC,stateholder,Xks,ro,dt,Q,R,T,delay=0,maxU=100,speedup = 1,ticktoc = None, NoControl=False):
+    def __init__(self,CRC,stateholder,Xks,Uks,ro,dt,Q,R,T,maxU=100,speedup = 1,ticktoc = None, NoControl=False):
         Thread.__init__(self)
         self.nocontrol = NoControl
         self.speedup = speedup
         self.ticktock = ticktoc
-        self.delay = delay
         self.CRC = CRC
         self.holder = stateholder
         self.dt = dt
         self.T  =T
         self.Q = Q
         self.ro = ro
-        #self.bounds = bounds(T,50)
         self.CRC.start()
-        self.Xks = Xks
+        
         self.offset = np.matrix([0,0,0]).transpose()
-        self.Uos = TrajToUko(Xks,ro,dt)
-        self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
+        
+        self.Uos = Uks
+        self.Xks = Xks
+        #self.Ks = TVLQR(self.Xks, self.Uos, dt, ro, Q, R)
         self.maxU = maxU
         self.index = 0
         self.csvFile = open("Run.csv",'wb')
         self.writer = csv.writer(self.csvFile)
-        #row = [s[3],self.Xks[index],X,U]
+
         row=['Time','X_target','Y_target','Angle_target','X_actual','Y_actual','Angle_actual','DX angle','U[0]','U[1]','Uc[0]','Uc[1]']
         self.writer.writerow(row)
 
@@ -188,30 +188,25 @@ class CreateController(Thread):
         Rv = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]])
-        #Zv = np.mat(np.zeros((3,3)))
-        #SRv = np.bmat([[Rv,Zv],[Zv,Rv]])
 
         th = self.Xks[0][2]
         Rp = np.matrix([[cos(th), -sin(th) ,0],
                        [sin(th), cos(th)  ,0],
                        [0,0,1]]) 
 
-        #SRp = np.bmat([[Rp,Zv],[Zv,Rp]])
 
         return Rp.dot(Rv.dot(X-self.offset))+(np.matrix(self.Xks[0][0:3]).transpose())
 
     def run(self):
-        ndelay = int(self.delay/self.dt)
         Qbar = makeSuperQ(self.Q,self.T)
         waittime = 0 # self.dt/self.speedup
         Xguess = xtrajMaker(self.Xks,self.Uos,self.T,self.index)
-        while True and self.index<( len(self.Uos)+ndelay):
+        while True and self.index<( len(self.Uos)-2):
 
             
 
-            T = min( (len(self.Uos) - self.index),
-                      self.T)
-           
+            T = min( (len(self.Uos) - self.index-1), self.T)
+
             tic = time.time()
 
             # the current State
@@ -254,11 +249,6 @@ class CreateController(Thread):
 
             #look out for theta wrap around
 
-
-            if self.index>ndelay:
-                index = self.index-ndelay
-            else:
-                index = 0
                 
             Xk = np.matrix(self.Xks[index]).transpose()
             DX = X_m- Xk
@@ -333,6 +323,8 @@ def main():
 
 
     Xks = circle(r_circle,dt,speed)
+    Xks,Uks = TrajToUko(Xks,r_wheel,dt)
+
     delay =  DelayModel(speed)
     maxU = 15.0
 
@@ -347,7 +339,7 @@ def main():
     VI = ViconInterface(channel,sh)
     T = 5
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU)
+    CC = CreateController(CRC,sh,Xks,Uks,r_wheel,dt,Q,R,T,delay,maxU)
 
 
     

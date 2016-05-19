@@ -10,9 +10,8 @@ from plotRun import *
 
 
 class CreateSimulator(Thread):
-    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,delay=0,speedup = 10,timelock=None,NoNoise=False):
+    def __init__(self,CRC_sim,stateholder,XKs,ro,dt,Q,speedup = 10,timelock=None,NoNoise=False):
         Thread.__init__(self)
-        self.delay=delay
         self.CRC = CRC_sim
         self.holder = stateholder
         self.ro =ro
@@ -27,9 +26,8 @@ class CreateSimulator(Thread):
     
     def run(self):
         X_k = np.mat(np.zeros( (6,1) ) )
-        ndelay = int(self.delay/self.dt)
         print "start sim"
-        while True and self.index<( len(self.Xks)+ndelay):
+        while True and self.index<( len(self.Xks) ):
             time.sleep(self.dt/self.speedup)
             Uc = self.CRC.LastU()
 
@@ -130,9 +128,8 @@ def main():
     #Xks = circle(r_circle,dt,speed)
     #Xks = straight(1000,1.0/5.0,speed)
     Xks = loadTraj('../Media/Cardiod-rc300.00-spacing5.00-rcut127.00-trajs-0.npy')
+    Xks,Uks = TrajToUko(Xks,r_wheel,dt)
     #Xks = Xks[:50]
-    delay = 0# DelayModel(speed)
-
 
     lock = Lock()
 
@@ -149,8 +146,8 @@ def main():
     T = 5 #horizon
 
     CRC =CRC_Sim()
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxUc,speedup,timelock)
-    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,delay,speedup,timelock)
+    CC = CreateController(CRC,sh,Xks,Uks,r_wheel,dt,Q,R,T,maxUc,speedup,timelock)
+    VSim = CreateSimulator(CRC,sh,Xks,r_wheel,dt,Q,speedup,timelock)
 
     VSim.start()
     #time.sleep(0.005)

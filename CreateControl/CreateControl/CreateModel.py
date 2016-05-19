@@ -37,6 +37,10 @@ def minAngleDif(x,y):
      #if(a<0):a = 2*pi-a
      return a
 
+
+def V(Xk,Xkp1,dt):
+    return sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
+
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     #V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
     #http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
@@ -60,18 +64,28 @@ def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
 
     return  Uc.transpose()
 
+def sameSign(a,b):
+    if (a==0 or b==0) and (a!=0 or b!=0): return False
+    return ((a<0) == (b<0))
 
-def TrajToUko(Xks,ro,dt):
+def TrajToUko(Xks,ro,dt,):
     Ukos = []
+    prev_v = 0
+    new_xks = []
     for i in range(0,len(Xks)-1):
         Xk = Xks[i]
         Xkp1 = Xks[i+1]
-        Ukos.append(np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt)))
-    #for i in range(len(Ukos)-1,0,-1):
-    #    Uk = Ukos[i]
-    #    if Uk[0] == 0 and Uk[1]==0:
-    #        Ukos[i] = Ukos[i+1]
-    return Ukos
+        v = V(Xk,Xkp1,dt)
+        Uko = np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt))
+        npts=1
+        if not sameSign(prev_v,v):
+            delay = DelayModel(v)
+            npts = int(delay/dt)
+        for j in range(0,npts):
+            new_xks.append(Xk)
+            Ukos.append(Uko)
+        prev_v = v
+    return new_xks,Ukos
 
 
 def TVLQR(xtraj, utraj, dt, r0, Q, R):

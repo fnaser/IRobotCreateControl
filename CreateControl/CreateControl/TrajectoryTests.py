@@ -112,9 +112,9 @@ def main():
     plotTraj(xs)
     
     r_wheel = 125
-    UKs = TrajToUko(xs,r_wheel,dt)
+    XKs,UKs = TrajToUko(xs,r_wheel,dt)
 
-    plotUandX(xs,UKs,dt)
+    plotUandX(XKs,UKs,dt)
     
     return 0
 
