@@ -39,7 +39,9 @@ def minAngleDif(x,y):
 
 
 def V(Xk,Xkp1,dt):
-    return sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
+    vm = [ (Xkp1[0]-Xk[0])/dt  , ((Xkp1[1]-Xk[1])/dt) ]
+
+    return vm
 
 def UkFromXkandXkplusone(Xk,Xkp1,ro,dt):
     #V = sqrt(  ((Xkp1[0]-Xk[0])/dt)**2  + ((Xkp1[1]-Xk[1])/dt)**2 )
@@ -68,9 +70,12 @@ def sameSign(a,b):
     if (a==0 or b==0) and (a!=0 or b!=0): return False
     return ((a<0) == (b<0))
 
+def dotProduct(v1,v2):
+    return v1[0]*v2[0]+v1[1]*v2[1]
+
 def TrajToUko(Xks,ro,dt,):
     Ukos = []
-    prev_v = 0
+    prev_v = [0,0]
     new_xks = []
     for i in range(0,len(Xks)-1):
         Xk = Xks[i]
@@ -78,8 +83,8 @@ def TrajToUko(Xks,ro,dt,):
         v = V(Xk,Xkp1,dt)
         Uko = np.array(UkFromXkandXkplusone(Xk,Xkp1,ro,dt))
         npts=1
-        if not sameSign(prev_v,v):
-            delay = DelayModel(v)
+        if (dotProduct(prev_v,v) <= 0):
+            delay = DelayModel(sqrt(dotProduct(v,v)))
             npts = int(delay/dt)
         for j in range(0,npts):
             new_xks.append(Xk)

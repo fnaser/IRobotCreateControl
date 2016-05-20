@@ -308,7 +308,7 @@ def main():
     '''
 
     dist = 20.0 #mm
-    ang = 1.0 # radians
+    ang = 0.5 # radians
 
     Q = np.diag([1.0/(dist*dist),
                  1.0/(dist*dist),
@@ -322,10 +322,9 @@ def main():
 
 
 
-    Xks = circle(r_circle,dt,speed)
+    Xks = loadTraj('../Media/card4-dist5.20-rcut130.00-trajs-0.npy')
     Xks,Uks = TrajToUko(Xks,r_wheel,dt)
 
-    delay =  DelayModel(speed)
     maxU = 15.0
 
 
@@ -333,13 +332,12 @@ def main():
 
     start = np.matrix(Xks[0][0:3]).transpose()
 
-    print start
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
     T = 5
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
-    CC = CreateController(CRC,sh,Xks,Uks,r_wheel,dt,Q,R,T,delay,maxU)
+    CC = CreateController(CRC,sh,Xks,Uks,r_wheel,dt,Q,R,T,maxU,NoControl=False)
 
 
     
