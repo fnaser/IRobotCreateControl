@@ -127,6 +127,7 @@ def main():
         print "starting"
         CRC.start()
         CRC.stop()
+        return 0
         for i in range(0,2):
             CRC.directDrive(50,50)
             time.sleep(5)

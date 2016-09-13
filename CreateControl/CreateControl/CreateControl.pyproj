@@ -40,6 +40,7 @@
     <Compile Include="Simulator.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="stop.py" />
     <Compile Include="TrajectoryTests.py">
       <SubType>Code</SubType>
     </Compile>
