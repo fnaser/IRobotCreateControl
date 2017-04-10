@@ -319,10 +319,10 @@ def main():
     R = np.diag([1/( command_variation * command_variation ),
                  1/( command_variation * command_variation )] )
 
-    #Xks = loadTraj('../Media/card4-dist5.20-rcut130.00-trajs-0.npy')
+    Xks = loadTraj('../Media/card4-dist5.20-rcut130.00-trajs-0.npy')
     r_circle = 260#mm
     speed = 20 #64
-    Xks = circle(r_circle,dt,speed)#loadTraj('../Media/card4-dist5.20-rcut130.00-trajs-0.npy')
+    #Xks = circle(r_circle,dt,speed)#loadTraj('../Media/card4-dist5.20-rcut130.00-trajs-0.npy')
     Xks,Uks = TrajToUko(Xks,r_wheel,dt)
 
     maxU = 15.0
