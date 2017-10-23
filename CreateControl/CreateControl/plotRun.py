@@ -7,7 +7,7 @@ import sys
 from CreateModel import minAngleDif
 
 
-def plotCSVRun(file = 'run.csv'):
+def plotCSVRun(file = 'Run.csv'):
     data = genfromtxt(file,delimiter = ',')
     print data.shape
     headings = data[0,:]
@@ -116,3 +116,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
+

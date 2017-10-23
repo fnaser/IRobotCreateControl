@@ -22,7 +22,7 @@ class StateHolder():
         self.state = state
         self.t=t
         self.lock.release()
-	#print "set: ",state
+    #print "set: ",state
     def GetConfig(self):
         return self.state
     def getTime(self):
@@ -58,7 +58,7 @@ class ViconTester(Thread):
         Thread.__init__(self)
         self.holder = state_holder
         self.rate=rate
-	    #print "interval: ",1.0/self.rate
+        #print "interval: ",1.0/self.rate
     def run(self):
         while True:
             time.sleep(1.0/self.rate)
@@ -72,7 +72,7 @@ class ViconLogger(Thread):
         self.csvFile = open(name,'wb')
         self.writer = csv.writer(self.csvFile)
 
-	    #print "interval: ",1.0/self.rate
+        #print "interval: ",1.0/self.rate
     def run(self):
         n=1
         while n<10:

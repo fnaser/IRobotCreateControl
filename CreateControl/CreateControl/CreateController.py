@@ -25,7 +25,7 @@ class TickTock():
         #self.lock.acquire()
         self.ConI = I
         #self.lock.release()
-	#print "set: ",state
+    #print "set: ",state
     def simTick(self):
         return self.ConI>=self.SimI
     def conTick(self):
@@ -216,6 +216,8 @@ class CreateController(Thread):
 
             # the current State
             X_m = self.holder.GetConfig()
+            print "X_m"
+            print X_m
             t = self.holder.getTime()
 
             #print "state %0.3f,%0.3f,%0.3f"%(s[0],s[1],s[2]) 
@@ -251,7 +253,6 @@ class CreateController(Thread):
             U = XStar.x[0:2]
 
             
-
             #look out for theta wrap around
 
 
@@ -261,17 +262,23 @@ class CreateController(Thread):
                 index = 0
                 
             Xk = np.matrix(self.Xks[index]).transpose()
-            DX = X_m- Xk
+            DX = X_m - Xk
             DX[2,0] = minAngleDif(X_m[2,0],self.Xks[index][2])
             Uc = np.squeeze(np.array(self.Uos[self.index]).transpose())
 
             Udif = U-Uc
+            print "Udif"
+            print Udif
             for i in range(0,2):
                 if fabs(Udif[i])>self.maxU:
+                    print "fabs(Udif[i])>self.maxU"
+                    print self.maxU
                     U[i] = self.maxU*Udif[i]/fabs(Udif[i])+Uc[i]
 
 
             if self.nocontrol: U=Uc
+            print "U"
+            print U
 
             step = False
             if self.ticktock == None: step=True
@@ -298,27 +305,27 @@ class CreateController(Thread):
                 self.index +=1
             
             
-            
-
         self.CRC.stop()
         self.csvFile.close()
-        print "closed"
+        print "CSV closed"
+
 
 def main():
-    channel = 'VICON_sawbot'
-    r_wheel = 125#mm
-    dt = 1.0/5.0
+    channel = 'VICON_fn_roomba' #'VICON_sawbot'
+    r_wheel = 125 #mm
+    dt = 1.0/5.0 #1.0
 
-    r_circle = 300#mm
-    speed = 20 #64
+    r_circle = 300 #300 #mm
+    speed = 64 #20 #64
 
 
-    '''Q should be 1/distance deviation ^2
-    R should be 1/ speed deviation^2
+    '''
+    Q should be 1/distance deviation^2
+    R should be 1/speed deviation^2
     '''
 
     dist = 20.0 #mm
-    ang = 1.0 # radians
+    ang = 1.0 #radians
 
     Q = np.diag([1.0/(dist*dist),
                  1.0/(dist*dist),
@@ -331,35 +338,34 @@ def main():
                  1/( command_variation * command_variation )] )
 
 
+    Xks = circle(r_circle,dt,speed,2)
+    print Xks
 
-    Xks = circle(r_circle,dt,speed)
     delay =  DelayModel(speed)
-    maxU = 15.0
-
+    maxU = 100.0 #15
+    T = 5
 
     lock = Lock()
 
-    start = np.matrix(Xks[0][0:3]).transpose()
+    start = np.matrix(Xks[0][0:3]).transpose() #not used?
 
-    print start
+    print "Start"
+
     sh = StateHolder(lock,np.matrix([0,0,0]).transpose())
 
     VI = ViconInterface(channel,sh)
-    T = 5
+    #VT = ViconLogger()
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU)
 
-
-    
     VI.start()
     time.sleep(0.05)
     CC.start()
-
     CC.join()
-    #VI.join()
 
     print "Done"
     plotCSVRun()
+    sys.exit()
 
 if __name__ == "__main__":
     sys.exit(int(main() or 0))
