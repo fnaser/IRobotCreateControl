@@ -276,7 +276,9 @@ class CreateController(Thread):
                     U[i] = self.maxU*Udif[i]/fabs(Udif[i])+Uc[i]
 
 
-            if self.nocontrol: U=Uc
+            if self.nocontrol: 
+                print "controll off"
+                U=Uc
             print "U"
             print U
 
@@ -315,8 +317,8 @@ def main():
     r_wheel = 125 #mm
     dt = 1.0/5.0 #1.0
 
-    r_circle = 300 #300 #mm
-    speed = 64 #20 #64
+    r_circle = 400 #300 #mm
+    speed = 200 #20 #64
 
 
     '''
@@ -338,11 +340,12 @@ def main():
                  1/( command_variation * command_variation )] )
 
 
-    Xks = circle(r_circle,dt,speed,2)
-    print Xks
 
-    delay =  DelayModel(speed)
-    maxU = 100.0 #15
+    Xks = circle(r_circle,dt,speed,2)
+
+
+    delay =  0.0#DelayModel(speed)
+    maxU = 500.0 #15
     T = 5
 
     lock = Lock()
@@ -356,7 +359,7 @@ def main():
     VI = ViconInterface(channel,sh)
     #VT = ViconLogger()
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
-    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU)
+    CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU,NoControl=True)
 
     VI.start()
     time.sleep(0.05)

@@ -13,15 +13,14 @@ def circle(r,dt,speed,rounds):
     n = int(round(c/dist))
     Xks=[]
 
-    for i in range(0,rounds):
 
-        for i in range(0,n+1):
-            x = r*cos(2*pi/n*i)
-            y = r*sin(2*pi/n*i)
-            theta = (2*pi/n*i+pi/2.0)%(2*pi)
-            Xk = [x,y,theta]
+    for i in range(0,rounds*n+1):
+        x = r*cos(2*pi/n*i)
+        y = r*sin(2*pi/n*i)
+        theta = (2*pi/n*i+pi/2.0)%(2*pi)
+        Xk = [x,y,theta]
 
-            Xks.append(Xk)
+        Xks.append(Xk)
 
     return np.array(Xks)
 
