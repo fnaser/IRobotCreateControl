@@ -19,7 +19,7 @@ def circle(r,dt,speed,rounds):
         y = r*sin(2*pi/n*i)
         theta = (2*pi/n*i+pi/2.0)%(2*pi)
         Xk = [x,y,theta]
-
+        
         Xks.append(Xk)
 
     return np.array(Xks)

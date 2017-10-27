@@ -122,6 +122,7 @@ def A(dt):
 
 
 def DelayModel(speed):
+    return 0.0;
     if speed < 17.5: return 2.0
    
     Mslope = -0.021
@@ -131,6 +132,8 @@ def DelayModel(speed):
 
 
 def MotorGainAndOffset():
-    G = np.diag([0.855,0.7337])
-    V = np.mat([[-1.8889],[-0.6113]])
+    #G = np.diag([0.855,0.7337])
+    #V = np.mat([[-1.8889],[-0.6113]])
+    G = np.diag([1.0,1.0])
+    V = np.mat([[0.0],[0.0]])
     return G,V
