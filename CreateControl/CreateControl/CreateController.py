@@ -313,7 +313,7 @@ class CreateController(Thread):
 
 
 def main():
-    channel = 'VICON_fn_roomba' #'VICON_sawbot'
+    channel = 'VICON_fn_green_big' #'VICON_sawbot'
     r_wheel = 125 #mm
     dt = 1.0/5.0 #1.0
 
@@ -340,12 +340,11 @@ def main():
                  1/( command_variation * command_variation )] )
 
 
-
-    Xks = circle(r_circle,dt,speed,2)
+    Xks = circle(r_circle,dt,speed,5)
 
 
     delay =  0.0#DelayModel(speed)
-    maxU = 500.0 #15
+    maxU = 100 #500.0 #15
     T = 5
 
     lock = Lock()
@@ -360,6 +359,7 @@ def main():
     #VT = ViconLogger()
     CRC = CreateRobotCmd('/dev/ttyUSB0',Create_OpMode.Full,Create_DriveMode.Direct)
     CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU,NoControl=True)
+    #CC = CreateController(CRC,sh,Xks,r_wheel,dt,Q,R,T,delay,maxU,NoControl=False)
 
     VI.start()
     time.sleep(0.05)
