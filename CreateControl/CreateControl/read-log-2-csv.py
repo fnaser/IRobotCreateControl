@@ -2,10 +2,9 @@ import sys
 import lcm
 from vicon import body_t
 import csv
-import numpy as np
 
-def writeMyRow(t, pos, writer):
-    state = [t, pos[0]*mm, pos[1]*mm, pos[2]*mm]
+def writeMyRow(t, pos, color, writer):
+    state = [t, pos[0]*mm, pos[1]*mm, pos[2]*mm, color]
     writer.writerow(state)
 
 if len(sys.argv) < 2:
@@ -14,17 +13,35 @@ if len(sys.argv) < 2:
 
 mm = 1000.0
 
-csvFileName = sys.argv[1] + ".csv"
-print(csvFileName)
-
 log = lcm.EventLog(sys.argv[1], "r")
 
-csvFile = open(csvFileName,'wb')
+csvFile = open(sys.argv[1] + ".csv",'wb')
 writer = csv.writer(csvFile)
 
 for event in log:
+    
     if event.channel == "VICON_fn_blue":
         msg = body_t.decode(event.data)
-        writeMyRow(msg.utime, msg.trans, writer)
+        writeMyRow(msg.utime, msg.trans, "blue", writer)
+        
+    if event.channel == "VICON_fn_green":
+        msg = body_t.decode(event.data)
+        writeMyRow(msg.utime, msg.trans, "green", writer)
+        
+    if event.channel == "VICON_fn_green_big":
+        msg = body_t.decode(event.data)
+        writeMyRow(msg.utime, msg.trans, "green_big", writer)
+        
+    if event.channel == "VICON_fn_yellow":
+        msg = body_t.decode(event.data)
+        writeMyRow(msg.utime, msg.trans, "yellow", writer)
+        
+    if event.channel == "VICON_fn_yellow_big":
+        msg = body_t.decode(event.data)
+        writeMyRow(msg.utime, msg.trans, "yellow_big", writer)
+        
+    if event.channel == "VICON_fn_roomba":
+        msg = body_t.decode(event.data)
+        writeMyRow(msg.utime, msg.trans, "roomba", writer)
 
 csvFile.close()
